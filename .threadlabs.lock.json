@@ -1,0 +1,17 @@
+{
+  "artifacts": {
+    "threadlabs.config.json": "5c975e182465a5b593ebcdf1c537fc7ed30591ff44930d17f0035c858f1ad6b3"
+  },
+  "modules": {
+    "agents": "1.0.0",
+    "code-documentation": "1.0.0",
+    "core": "1.0.0",
+    "freshness": "1.0.0",
+    "generated-artifacts": "1.0.0",
+    "github": "1.0.0",
+    "public-api": "1.0.0",
+    "typescript-node": "1.0.0"
+  },
+  "schemaVersion": "1.0",
+  "standardVersion": "1.0.0"
+}

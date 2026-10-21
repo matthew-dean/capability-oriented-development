@@ -1,0 +1,25 @@
+name: Proposal
+description: Propose a focused capability, contract or tooling improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Demonstrated need
+      description: What real change or failure motivates this? Which consumers are affected?
+    validations:
+      required: true
+  - type: textarea
+    id: existing
+    attributes:
+      label: Existing owners and tools
+      description: What did you inspect, and what requirement remains unmet?
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Smallest adequate change
+      description: Explain the proposed change and how you would verify it, including valid alternatives.
+    validations:
+      required: true

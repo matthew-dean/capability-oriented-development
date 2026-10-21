@@ -1,0 +1,42 @@
+{
+  "propagationVersion": 1,
+  "id": "relative-time-observations",
+  "responsibility": "The real consumer output follows a provider-only policy change",
+  "inputs": [
+    "propagation.json",
+    "observe.mjs",
+    "examples.json",
+    "live/owner.mjs",
+    "live/consumer.mjs",
+    "owner-probe.mjs"
+  ],
+  "provider": {
+    "target": "live/owner.mjs",
+    "probe": "owner-probe.mjs"
+  },
+  "observe": {
+    "command": "node",
+    "args": [
+      "observe.mjs"
+    ]
+  },
+  "expected": {
+    "baseline": {
+      "control": "moments ago",
+      "consumer": [
+        "moments ago",
+        "5 minutes ago"
+      ]
+    },
+    "changed": {
+      "control": "OWNER-SENTINEL",
+      "consumer": [
+        "OWNER-SENTINEL",
+        "OWNER-SENTINEL"
+      ]
+    }
+  },
+  "controlPath": [
+    "control"
+  ]
+}

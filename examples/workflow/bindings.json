@@ -1,0 +1,40 @@
+{
+  "bindingVersion": 1,
+  "id": "relative-time",
+  "contractInputs": [
+    "cases/composition/consumer.mjs",
+    "cases/composition/owner.mjs",
+    "cases/dead-owner-decoy/consumer.mjs",
+    "cases/dead-owner-decoy/owner.mjs",
+    "cases/delegation/consumer.mjs",
+    "cases/delegation/owner.mjs",
+    "cases/independent-copy/consumer.mjs",
+    "cases/independent-copy/owner.mjs",
+    "examples.json",
+    "probe.mjs",
+    "qualification.json",
+    "runtime.json",
+    "workflow.json",
+    "propagation.json",
+    "observe.mjs",
+    "owner-probe.mjs",
+    "cases/policy-override.mjs",
+    "cases/local-precision.mjs"
+  ],
+  "implementations": [
+    {
+      "id": "owner",
+      "role": "provider",
+      "inputs": [
+        "live/owner.mjs"
+      ]
+    },
+    {
+      "id": "consumer",
+      "role": "consumer",
+      "inputs": [
+        "live/consumer.mjs"
+      ]
+    }
+  ]
+}

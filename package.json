@@ -1,0 +1,88 @@
+{
+  "name": "capability-oriented-development",
+  "version": "0.10.0",
+  "description": "Capability discovery and architectural consistency tools for coding agents",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "skills",
+    "examples/workflow",
+    "docs/workflows.md",
+    "docs/specification.md",
+    "docs/runtime-contracts.md",
+    "docs/presentation-checks.md",
+    "docs/README.md",
+    "docs/quickstart.md",
+    "docs/architecture.md",
+    "plugin.json",
+    ".claude-plugin/plugin.json",
+    "examples/native-stack",
+    "docs/existing-tools.md",
+    "docs/tool-recipes.md",
+    "docs/agent-setup.md",
+    "docs/agent-demonstration.md",
+    "tools/package_guidance.py",
+    "examples/agent-adoption",
+    "docs/preview.md",
+    "tools/test_distribution.py",
+    "docs/evidence.md",
+    "docs/change-bindings.md",
+    "docs/variant-qualification.md",
+    "docs/propagation.md",
+    "docs/distributed-adoption.md",
+    "docs/system-map.md",
+    "examples/system"
+  ],
+  "engines": {
+    "node": ">=22.13 <23 || >=24 <25"
+  },
+  "packageManager": "pnpm@12.9.1",
+  "scripts": {
+    "clean": "node --input-type=module --eval \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });\"",
+    "build": "pnpm clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "oxlint --deny-warnings .",
+    "test": "vitest run --exclude tests/package.test.ts",
+    "test:package": "vitest run tests/package.test.ts",
+    "verify:inner": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:native-stack && pnpm test:distribution",
+    "verify:pr": "pnpm verify:inner && pnpm build && pnpm test:package",
+    "verify:extended": "pnpm verify:pr",
+    "verify:release": "pnpm verify:pr && pnpm pack --dry-run",
+    "prepack": "pnpm build",
+    "check": "node dist/cli.js check examples",
+    "discover": "node dist/cli.js discover examples selection",
+    "test:mcp": "vitest run tests/mcp.test.ts",
+    "pretest": "pnpm build",
+    "test:native-stack": "node --test --test-concurrency=1 examples/native-stack/checks/contract.test.mjs examples/native-stack/checks/bindings.test.mjs",
+    "test:distribution": "python3 -m unittest discover -s tools -p 'test_*.py'"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@types/node": "22.20.1",
+    "dependency-cruiser": "18.6.0",
+    "oxlint": "1.81.0",
+    "vitest": "5.0.0"
+  },
+  "private": true,
+  "bin": {
+    "cod": "dist/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@vue/compiler-sfc": "3.5.43",
+    "ajv": "8.20.0",
+    "postcss": "8.5.14",
+    "typescript": "7.0.2",
+    "typescript-api": "npm:typescript@6.0.3",
+    "zod": "4.6.7"
+  }
+}

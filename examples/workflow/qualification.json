@@ -1,0 +1,102 @@
+{
+  "qualificationVersion": 2,
+  "id": "relative-time-witness",
+  "responsibility": "Registered consumers follow a shared relative-time policy",
+  "inputs": [
+    "probe.mjs",
+    "cases/delegation/owner.mjs",
+    "cases/delegation/consumer.mjs",
+    "cases/composition/owner.mjs",
+    "cases/composition/consumer.mjs",
+    "cases/independent-copy/owner.mjs",
+    "cases/independent-copy/consumer.mjs",
+    "cases/dead-owner-decoy/owner.mjs",
+    "cases/dead-owner-decoy/consumer.mjs",
+    "examples.json",
+    "live/owner.mjs",
+    "live/consumer.mjs",
+    "cases/policy-override.mjs",
+    "cases/local-precision.mjs"
+  ],
+  "witness": [
+    "probe.mjs"
+  ],
+  "behavior": {
+    "command": "node",
+    "args": [
+      "../probe.mjs",
+      "behavior"
+    ],
+    "cwd": "live"
+  },
+  "conformance": {
+    "command": "node",
+    "args": [
+      "../probe.mjs",
+      "conformance"
+    ],
+    "cwd": "live"
+  },
+  "cases": [
+    {
+      "id": "delegation",
+      "role": "delegation",
+      "overlays": [
+        {
+          "target": "live/consumer.mjs",
+          "source": "cases/delegation/consumer.mjs"
+        }
+      ]
+    },
+    {
+      "id": "composition",
+      "role": "composition",
+      "overlays": [
+        {
+          "target": "live/consumer.mjs",
+          "source": "cases/composition/consumer.mjs"
+        }
+      ]
+    },
+    {
+      "id": "independent-copy",
+      "role": "independent-copy",
+      "overlays": [
+        {
+          "target": "live/consumer.mjs",
+          "source": "cases/independent-copy/consumer.mjs"
+        }
+      ]
+    },
+    {
+      "id": "dead-owner-decoy",
+      "role": "dead-owner-decoy",
+      "overlays": [
+        {
+          "target": "live/consumer.mjs",
+          "source": "cases/dead-owner-decoy/consumer.mjs"
+        }
+      ]
+    },
+    {
+      "id": "policy-override",
+      "role": "policy-override",
+      "overlays": [
+        {
+          "target": "live/consumer.mjs",
+          "source": "cases/policy-override.mjs"
+        }
+      ]
+    },
+    {
+      "id": "local-precision",
+      "role": "valid-alternative",
+      "overlays": [
+        {
+          "target": "live/consumer.mjs",
+          "source": "cases/local-precision.mjs"
+        }
+      ]
+    }
+  ]
+}

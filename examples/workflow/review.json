@@ -1,0 +1,11 @@
+{
+  "reviewVersion": 2,
+  "id": "relative-time",
+  "definitionDigest": "7ecf325e9c14740f7a1b200f1830746abdaba7cb0e631d481dc1a71f790348f6",
+  "contractDigest": "3ee0c1e020eeee0af0b2c194299467a981bf561d881f1ad8428ec722691049e9",
+  "implementations": {
+    "owner": "399966394a74c6026b6e602e6c24358327cecc5c0d1fe445b6950ffa3837007a",
+    "consumer": "a8e61dc6ddfb39bea3aa0fd7ca6cac9794e73f490b5cc9fea79c486a5b0ac00b"
+  },
+  "rationale": "Relative-time wording remains shared; local input precision is supported composition. Production variants cover a partial wording override, copies and dead references. The propagation observer separates provider readiness from actual consumer output. Current execution is required."
+}

@@ -1,0 +1,128 @@
+{
+  "bundles": [],
+  "documentation": {
+    "hotspots": []
+  },
+  "exceptions": [
+    {
+      "controlId": "npm-publish.baseline",
+      "owner": "matthew-dean",
+      "reason": "MIT-licensed project; package publication remains intentionally disabled pending a separate publishing decision.",
+      "reviewDate": "2027-01-31",
+      "scope": "repository"
+    }
+  ],
+  "freshness": {
+    "holds": [
+      {
+        "name": "@types/node",
+        "owner": "matthew-dean",
+        "reason": "Type declarations intentionally target the minimum supported Node line.",
+        "reviewDate": "2027-01-31"
+      }
+    ]
+  },
+  "modules": [
+    "agents",
+    "code-documentation",
+    "core",
+    "freshness",
+    "generated-artifacts",
+    "github",
+    "public-api",
+    "typescript-node"
+  ],
+  "ownership": [
+    {
+      "mode": "local",
+      "path": ".gitattributes"
+    },
+    {
+      "mode": "local",
+      "path": ".github/dependabot.yml"
+    },
+    {
+      "mode": "local",
+      "path": ".github/workflows/ci.yml"
+    },
+    {
+      "mode": "local",
+      "path": ".gitignore"
+    },
+    {
+      "mode": "local",
+      "path": "AGENTS.md"
+    },
+    {
+      "mode": "local",
+      "path": "CLAUDE.md"
+    },
+    {
+      "mode": "local",
+      "path": "LICENSE"
+    },
+    {
+      "mode": "local",
+      "path": "README.md"
+    },
+    {
+      "mode": "local",
+      "path": "docs/code-documentation-standard.md"
+    },
+    {
+      "mode": "local",
+      "path": "oxlint.json"
+    },
+    {
+      "mode": "local",
+      "path": "package.json"
+    },
+    {
+      "mode": "local",
+      "path": "pnpm-workspace.yaml"
+    },
+    {
+      "mode": "local",
+      "path": "src/index.ts"
+    },
+    {
+      "mode": "local",
+      "path": "tests/index.test.ts"
+    },
+    {
+      "mode": "local",
+      "path": "tests/package.test.ts"
+    },
+    {
+      "mode": "local",
+      "path": "tsconfig.build.json"
+    },
+    {
+      "mode": "local",
+      "path": "tsconfig.json"
+    },
+    {
+      "mode": "local",
+      "path": "vitest.config.ts"
+    },
+    {
+      "mode": "managed",
+      "path": ".threadlabs.lock.json"
+    },
+    {
+      "mode": "local",
+      "path": "threadlabs.config.json"
+    }
+  ],
+  "release": {
+    "strategy": "single-package"
+  },
+  "schemaVersion": "1.0",
+  "settings": {
+    "description": "Capability discovery and architectural consistency tools for coding agents",
+    "licenseHolder": "matthew-dean",
+    "licenseYear": 2026,
+    "projectName": "capability-oriented-development"
+  },
+  "standardVersion": "1.0.0"
+}

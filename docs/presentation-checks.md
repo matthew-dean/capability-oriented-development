@@ -1,0 +1,20 @@
+# Presentation check reference
+
+`cod enforce` checks explicitly declared source obligations for presentation ownership. The [current specification](specification.md) defines COD requirements; this reference describes the implemented adapter and its coverage. Pair its source checks with independent behavior, visual and propagation checks.
+
+## Implemented presentation obligation
+
+`enforcePresentation(root, contract)` and `cod enforce <root> <contract.json>` inspect explicitly declared Vue wrappers. The checker reads source without executing repository code. The authority and every consumer must resolve inside the root; missing files and escaped symlinks are unresolved.
+
+The contract has strict fields: `enforcementVersion: 1`, nonempty `id`, `responsibility` and relative `authority`, and a nonempty `consumers` array. Each consumer has relative `file`, `provider: { module, export }`, an explicit array of permitted CSS placement properties, and `styleBindings: [{ variable, properties }]` describing covered ref-object placement assignments. Optional `externalStyles` defaults to `[]`; entries have relative `file`, simple `className` and `placementProperties`. They check component-specific class rules in shared stylesheets while leaving global theme seeds available. Empty style-binding/property arrays are allowed. Unknown keys are rejected. This is separate from capability manifest schema 1; it does not silently give that schema new guarantees.
+
+The TypeScript parser reads script-setup import bindings without resolving repository imports; the Vue compiler parses the actual template. Runtime aliases and Vue kebab-case tags work; type-only/unused imports, comments or rendering another component do not satisfy provider ownership. A covered wrapper has one provider template root. Static inline/CSS appearance declarations and literal dynamic ref-object appearance assignments violate the declared boundary when they introduce properties outside the contract. Dynamic object keys must be registered in `styleBindings.properties` and permitted by the same consumer’s `placementProperties`; registering a key cannot exempt an appearance override. JavaScript camel-case keys such as `zIndex` are compared as CSS names such as `z-index`. Supported props, slots and the covered placement pattern remain permitted. The actual owner's content and consumer sources are fingerprinted in every report.
+
+CLI exit 0 means these declared source obligations are verified; exit 1 means at least one is violated; exit 2 means invalid input or unresolved coverage. Read-only MCP `cod_enforce` accepts a relative contract path inside its scoped root and reports violations/unresolved coverage as tool errors. Reports preserve unresolved findings even when another finding is violated. `verified` does not mean visual equivalence or correct interaction. Independent browser and consumer tests must establish those behaviors.
+
+## Explicit coverage limits
+
+This adapter does not prove arbitrary semantic equivalence, discover transitive/new consumers, infer component intent, validate provider options, or execute behavior tests. It does not establish that the authority path truly owns the named export; contract authoring and independent source review must establish that link. External blocks, separate script blocks, dynamic component selection, spread bindings, unsupported style languages/at-rules and uncovered style expressions require review. Registered ref objects escaping the covered assignment pattern are unresolved. CSS inside the declared wrapper is conservatively restricted as a whole; legitimate richer slot styling may require a different contract/adapter and is a potential false alarm, not proof of inappropriate reuse.
+
+Consumer and owner changes require re-running obligations and inspecting changed fingerprints. Owner changes alone are neither automatically accepted as compatible nor automatically rejected; relevant behavior and propagation checks remain necessary. A successful source obligation report cannot replace those checks. This is a development limitation to solve before calling the proposed contract system complete.
+

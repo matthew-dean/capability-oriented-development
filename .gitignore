@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.threadlabs/
+*.tgz
+.DS_Store
+/benchmark/
+/internal/
+/research/
+/examples/study-evidence/
+
+__pycache__/

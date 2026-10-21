@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "ui.selection-toolbar",
+  "intent": "Expose bulk actions based on selected list items",
+  "owner": "frontend-platform",
+  "status": "experimental",
+  "operations": [
+    {
+      "name": "toolbarActions",
+      "file": "./toolbar.ts",
+      "export": "toolbarActions"
+    }
+  ],
+  "requires": [
+    "ui.selection"
+  ],
+  "extensions": [],
+  "examples": [
+    "./toolbar.example.ts"
+  ],
+  "tests": [
+    "./toolbar.test.ts"
+  ]
+}

@@ -1,0 +1,23 @@
+name: Adoption question
+description: Ask how COD fits an existing repository or tool stack.
+labels: [question]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Existing system
+      description: Languages, platforms, current specifications and verification tools. A public source link is optional.
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Responsibility and question
+      description: What behavior should be shared, where is its owner, and what is unclear or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have tried
+      description: Relevant guidance, commands or existing checks. Do not include private source or credentials.

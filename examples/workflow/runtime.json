@@ -1,0 +1,46 @@
+{
+  "runtimeContractVersion": 1,
+  "id": "relative-time-live",
+  "responsibility": "The live consumer delegates its common relative-time wording",
+  "inputs": [
+    "probe.mjs",
+    "live/owner.mjs",
+    "live/consumer.mjs",
+    "examples.json"
+  ],
+  "obligations": [
+    {
+      "id": "behavior",
+      "kind": "behavior",
+      "claim": "Required output",
+      "command": "node",
+      "args": [
+        "../probe.mjs",
+        "behavior"
+      ],
+      "cwd": "live"
+    },
+    {
+      "id": "ownership",
+      "kind": "ownership",
+      "claim": "The consumer follows an owner-only change",
+      "command": "node",
+      "args": [
+        "../probe.mjs",
+        "conformance"
+      ],
+      "cwd": "live"
+    },
+    {
+      "id": "evolution",
+      "kind": "evolution",
+      "claim": "The consumer follows an owner-only change",
+      "command": "node",
+      "args": [
+        "../probe.mjs",
+        "conformance"
+      ],
+      "cwd": "live"
+    }
+  ]
+}

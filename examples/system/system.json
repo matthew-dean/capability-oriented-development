@@ -1,0 +1,56 @@
+{
+  "systemVersion": 1,
+  "id": "workspace-settings",
+  "repositories": [
+    {
+      "id": "identity",
+      "location": "https://example.invalid/identity",
+      "inspectedRevision": "example-snapshot"
+    },
+    {
+      "id": "app",
+      "location": "https://example.invalid/app",
+      "inspectedRevision": "example-snapshot"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "workspace.permissions",
+      "responsibility": "Authoritative permission for workspace edits",
+      "owner": {
+        "repository": "identity",
+        "team": "Identity maintainers"
+      },
+      "implementations": [
+        {
+          "repository": "identity",
+          "reference": "src/workspace-authorization",
+          "role": "current"
+        }
+      ],
+      "contract": {
+        "repository": "identity",
+        "revision": "permissions-contract-1",
+        "artifact": "contracts/workspace-permissions.json",
+        "sha256": "37345901aa35f9551fbf49a732ae42b0226dae7765e66d4a1a745bb3e3fe2ad2",
+        "source": "identity:contracts/workspace-permissions.json"
+      },
+      "dependsOn": [],
+      "consumers": [
+        {
+          "id": "settings.save",
+          "repository": "app",
+          "entrypoint": "settings/submit",
+          "contractSha256": "37345901aa35f9551fbf49a732ae42b0226dae7765e66d4a1a745bb3e3fe2ad2",
+          "checks": {
+            "behavior": "provider native permission examples + app allowed/denied cases",
+            "ownership": "real settings client under distinct provider decision",
+            "evolution": "revocation propagates through settings submission",
+            "compatibility": "provider/consumer supported-version matrix",
+            "twoWay": "required contract review and consumer verification"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "contractVersion": 1,
+  "responsibility": "Decide whether an authenticated actor may edit a workspace",
+  "providerOwns": ["membership", "role evaluation", "revocation"],
+  "consumerOwns": ["form validation", "request orchestration", "displaying a denial"],
+  "examples": [
+    {"membership": "editor", "allowed": true},
+    {"membership": "revoked", "allowed": false}
+  ]
+}

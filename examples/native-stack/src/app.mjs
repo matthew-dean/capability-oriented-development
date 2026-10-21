@@ -1,0 +1,15 @@
+import { createAction as settingsAction } from './settings.mjs';
+import { createAction as teamAction } from './team.mjs';
+const params = new URLSearchParams(location.search);
+const team = params.get('screen') === 'team';
+const state = params.get('state') || 'idle';
+const app = document.querySelector('#app');
+const eyebrow = document.createElement('p'); eyebrow.className = 'eyebrow'; eyebrow.textContent = 'WORKSPACE / ' + (team ? 'PEOPLE' : 'GENERAL');
+const title = document.createElement('h1'); title.textContent = team ? 'A place for your whole team.' : 'Make yourself at home.';
+const description = document.createElement('p'); description.className = 'description'; description.textContent = team ? 'Invite people to collaborate. Their workspace permissions stay in your control.' : 'Manage the details that make this workspace yours.';
+const card = document.createElement('section'); card.className = 'card';
+const heading = document.createElement('h2'); heading.textContent = team ? 'Team members' : 'Workspace details';
+const detail = document.createElement('p'); detail.textContent = team ? 'Alex Rivera · Owner' : 'Atlas Studio · Product workspace';
+const status = document.createElement('p'); status.setAttribute('role', 'status'); status.textContent = state === 'busy' ? 'Working…' : 'Changes are up to date.';
+const button = (team ? teamAction : settingsAction)({ disabled: state === 'disabled', busy: state === 'busy', onClick: () => { status.textContent = team ? 'Invitation ready.' : 'Changes saved.'; } });
+card.append(heading, detail, button, status); app.append(eyebrow, title, description, card);

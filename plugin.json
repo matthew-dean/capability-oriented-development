@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "cod",
+  "description": "Adopt and maintain capability contracts using existing tools and qualified native checks.",
+  "author": {"name": "matthew-dean"},
+  "homepage": "https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/agent-setup.md",
+  "repository": "https://github.com/matthew-dean/capability-oriented-development"
+}

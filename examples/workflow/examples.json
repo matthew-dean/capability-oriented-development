@@ -1,0 +1,10 @@
+[
+  {
+    "input": 0,
+    "output": "moments ago"
+  },
+  {
+    "input": 5,
+    "output": "5 minutes ago"
+  }
+]

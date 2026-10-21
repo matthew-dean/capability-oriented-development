@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "ui.selection",
+  "intent": "Select and clear identifiers for list and table interactions",
+  "owner": "frontend-platform",
+  "status": "stable",
+  "operations": [
+    {
+      "name": "select",
+      "file": "./selection.ts",
+      "export": "select"
+    },
+    {
+      "name": "clear",
+      "file": "./selection.ts",
+      "export": "clear"
+    }
+  ],
+  "requires": [],
+  "extensions": [
+    "selection-policy"
+  ],
+  "examples": [
+    "./selection.example.ts"
+  ],
+  "tests": [
+    "./selection.test.ts"
+  ],
+  "invariants": [
+    "Selected identifiers are unique"
+  ]
+}

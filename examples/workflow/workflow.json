@@ -1,0 +1,26 @@
+{
+  "workflowVersion": 1,
+  "id": "relative-time-change",
+  "decision": {
+    "action": "reuse",
+    "rationale": "The shared relative-time policy fits this consumer without changing its orchestration"
+  },
+  "contracts": [
+    "runtime.json"
+  ],
+  "qualifications": [
+    {
+      "file": "qualification.json",
+      "contracts": [
+        "relative-time-live"
+      ]
+    }
+  ],
+  "requireChangeBindings": true,
+  "changeBindings": [
+    {
+      "definition": "bindings.json",
+      "review": "review.json"
+    }
+  ]
+}
