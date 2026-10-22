@@ -37,8 +37,7 @@
         },
         "required": [
           "command",
-          "args",
-          "cwd"
+          "args"
         ],
         "additionalProperties": false
       }
@@ -77,9 +76,7 @@
   },
   "required": [
     "scipMappingVersion",
-    "additionalInputs",
-    "producers",
-    "capabilities"
+    "producers"
   ],
   "additionalProperties": false
 }

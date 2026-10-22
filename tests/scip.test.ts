@@ -3,12 +3,30 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync, unlinkSync, symlinkSy
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { Ajv2020 } from 'ajv/dist/2020.js';
 import { afterEach, expect, it } from 'vitest';
 import { importScipIndexes, inspectScipMap, refreshScipMap, scipMappingSchema } from '../src/scip.js';
 const roots: string[] = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 const policy = 'scip-dotnet nuget sample 1 Policy#Allows().';
 const screen = 'scip-typescript npm sample 1 screen.ts/show().';
+it('accepts documented mapping inputs in the published schema without requiring runtime defaults', () => {
+  const schema = JSON.parse(readFileSync(new URL('../schemas/scip-mapping.schema.json', import.meta.url), 'utf8'));
+  const validate = new Ajv2020({ strict: true }).compile(schema);
+  const guide = readFileSync(new URL('../docs/scip-mapping.md', import.meta.url), 'utf8');
+  const documented = JSON.parse(guide.match(/```json\n([\s\S]*?)\n```/)![1]!);
+  expect(validate(documented)).toBe(true);
+  const minimal = { scipMappingVersion: 1, producers: [{ command: 'node', args: ['producer.mjs', '{output}'] }] };
+  expect(validate(minimal)).toBe(true);
+  expect(scipMappingSchema.parse(minimal)).toEqual({ ...minimal, additionalInputs: [], capabilities: [], producers: [{ ...minimal.producers[0], cwd: '.' }] });
+  expect(minimal).not.toHaveProperty('additionalInputs');
+  for (const field of ['scipMappingVersion', 'producers']) {
+    expect(validate(Object.fromEntries(Object.entries(minimal).filter(([key]) => key !== field)))).toBe(false);
+  }
+  for (const field of ['command', 'args']) {
+    expect(validate({ ...minimal, producers: [Object.fromEntries(Object.entries(minimal.producers[0]!).filter(([key]) => key !== field))] })).toBe(false);
+  }
+});
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'cod-scip-test-')); roots.push(root);
   execFileSync('git', ['init', '-q'], { cwd: root });
