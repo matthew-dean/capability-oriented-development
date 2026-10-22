@@ -93,6 +93,8 @@ Adopt one useful responsibility at a time. Inspect the repository's real archite
 
 Name its owner, consumer set, requirements and supported variation in the repository's existing contract format. Add focused behavior and calibrated ownership/evolution checks. Link or integrate them with the native test/build workflow. Repair genuine ownership gaps proportionately; legitimate different rules may need different owners.
 
+Before declaring an owner, trace the requested outcome through existing adapters, middleware, SDK configuration and downstream policy. An unexported predicate or configured hook can already own the common rule. Missing a convenient callable API is a reason to consider delegation or a proportionate extraction, not evidence that the responsibility is absent. Record existing matching rules and any demonstrated reason they should evolve independently in the ordinary contract or change review. Do not certify a newly introduced helper against itself while leaving an equivalent production policy outside the adopted boundary.
+
 Route agent guidance to the [repository skill](../skills/cod-workflow/SKILL.md). Use the existing `AGENTS.md` as the canonical instructions and let tool-specific files refer to it. Introduce capability manifests and indexing where their discovery or reconciliation value justifies the maintenance. Unsupported indexing does not negate native evidence, but it cannot be reported as a successful graph check.
 
 Expand adoption only after the first responsibility's contract, checks and maintenance burden are useful. Keep observed scope, false alarms, gaps and costs visible. The [adoption procedure](workflows.md#adopt-in-an-existing-repository) supplies concrete installation and integration steps.
@@ -112,6 +114,8 @@ Agent adherence is not machine enforcement. An agent can overlook consumers, lea
 ## 6. Enforcement by other tools
 
 Keep three claims separate:
+
+Choose observations at the boundary the requirement promises. An SDK capture call does not establish that its configured filter accepts the event; an HTTP request does not establish that the receiving service applies its policy. Keep the relevant real policy path in ownership/evolution checks and observe its result. Mock unrelated transport when appropriate, but do not replace the authority being tested with a spy or stub. If that authority cannot be exercised, retain the integration gap rather than claiming complete conformance. Qualification of a helper cannot settle whether it was the right owner to introduce.
 
 | Claim | Required evidence |
 |---|---|

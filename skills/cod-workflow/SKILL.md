@@ -19,6 +19,8 @@ Prefer supported configuration, reuse, composition or a proportionate owner exte
 
 Search in the request's language as well as implementation names. Inspect invariant matches and resolved declarations behind public exports. Name the particular rule or property the owner controls, and what the consumer retains; a component boundary does not give it ownership of every page decision. If lookup returns nothing, inspect affected source and dependencies before treating creation as necessary.
 
+Trace the requested outcome through adapters, middleware, SDK configuration and downstream policy. A private predicate or configured hook may already own the common rule without exposing a reusable API. Prefer delegation or a proportionate extraction over copying that policy into a new helper. Record matching existing rules and any demonstrated reason they should evolve independently in the ordinary contract or review; a new helper's self-consistent tests cannot establish that it was needed.
+
 ## Use SCIP mapping when configured
 
 Read the bundled `docs/scip-mapping.md` or https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/scip-mapping.md. Route covered tasks to this workflow through the repository's actual instructions. Inspect the current map before choosing owners; use `inspect-scip --symbol` for definitions and read the returned source and contracts. Inspect stale-map impact on unchanged consumers before refreshing. Complete native checks and authored contract/review changes, then run configured `refresh-scip` and inspect the final state. Leave the map current or explicitly report failed refresh and stale/unresolved coverage; refresh never accepts a contract review.
@@ -44,6 +46,8 @@ Use the specification's [concrete review questions](https://github.com/matthew-d
 Research runs, transcripts, evaluator output, comparison datasets and reset patches stay in a private directory outside Git. They are not ordinary review artifacts. Keep reusable product checks and counterexample fixtures in source; write transient execution output to ignored paths or CI artifacts.
 
 ## Establish trustworthy checks
+
+Observe the boundary the requirement promises. An SDK capture call does not prove its configured filter accepted the event. Keep the relevant real authority in the observation path; mock unrelated transport, not the policy whose reuse is claimed. Observe the result after policy application. If that path cannot be exercised, report the integration gap rather than qualifying only the new helper and calling the responsibility covered.
 
 Keep behavior, ownership and owner-change propagation separate. For behavioral propagation claims, prefer `cod verify-propagation` (bundled `docs/propagation.md`) or an equivalent native observation check: invoke actual production consumers, capture their values as JSON, substitute a compatible provider probe and capture values again. Do not replace those observations with source-pattern presence or a self-reported ownership exit code. Qualification must reject an observer that only calls the provider and never exercises the consumer.
 
