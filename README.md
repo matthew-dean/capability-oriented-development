@@ -119,3 +119,5 @@ The code and documentation use the [MIT license](LICENSE). [package.json](packag
 [Report a bug, propose a change or ask an adoption question](https://github.com/matthew-dean/capability-oriented-development/issues/new/choose). Include a small reproduction or a concrete unmet requirement. Prefer existing tools and owners; explain the missing observation before proposing a new checker.
 
 Keep private source, credentials and research transcripts out of issues and pull requests. Ordinary regression tests and reusable counterexamples belong with the product; transient execution output belongs in ignored paths or CI artifacts.
+
+For existing applications, [SCIP mapping](docs/scip-mapping.md) connects compiler-derived source relationships to reviewed capability bindings and reports stale maps and affected consumers.

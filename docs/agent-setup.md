@@ -89,4 +89,6 @@ Ordinary feature requests need not list tools or say “reuse the design system.
 
 Before relying on the workflow, ask the agent to locate the installed skill, identify the authoritative contract and run the project's verification command. Then give it a real change request. Independently inspect the result and rerun checks; do not accept the agent's summary as proof.
 
+When adopting source mapping, verify the [mapping task route and completion steps](scip-mapping.md#connect-the-agent-workflow) with that ordinary request. Check that the agent actually consults the map and that the final snapshot has the promised freshness and consumer coverage. Skill discovery, map consultation, map maintenance and semantic reuse are separate observations.
+
 The [adoption walkthrough](agent-demonstration.md) describes how to establish checks for this example. Native enforcement is compulsory only when integrated into the project's delivery checks and required CI status. Neither a plugin nor an LLM judgment makes it compulsory by itself.

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { refreshScipMap, inspectScipMap } from './scip.js';
 import { inspectSystemMap } from './system-map.js';
 import { reference } from './filesystem.js';
 import { readFileSync } from 'node:fs';
@@ -21,6 +22,13 @@ import { inspectChangeBindings, verifyChangeBindings } from './change-bindings.j
 export async function runCli(args: string[]): Promise<number> {
   const [command, root = '.', ...rest] = args;
   try {
+    if (command === 'refresh-scip' || command === 'inspect-scip') {
+      if ((command === 'refresh-scip' && (rest.length !== 3 || rest[2] !== '--allow-execution')) || (command === 'inspect-scip' && !(rest.length === 1 || (rest.length === 3 && rest[1] === '--symbol' && rest[2]?.trim())))) throw Error('Usage: cod refresh-scip <root> <mapping.json> <ignored-snapshot.json> --allow-execution | inspect-scip <root> <snapshot.json> [--symbol <query>]');
+      const input: unknown = JSON.parse(readFileSync(reference(root, rest[0]!), 'utf8'));
+      const result = command === 'refresh-scip' ? await refreshScipMap(root, input, rest[1]!, { allowExecution: true }) : inspectScipMap(root, input, rest[2] ? { symbol: rest[2] } : {});
+      process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+      return result.state === 'mapped' || result.state === 'current' ? 0 : 2;
+    }
     if (command === 'inspect-system') {
       if (rest.length !== 1) throw new Error('Usage: cod inspect-system <root> <system.json>');
       const result = inspectSystemMap(root, JSON.parse(readFileSync(reference(root, rest[0]!), 'utf8')));

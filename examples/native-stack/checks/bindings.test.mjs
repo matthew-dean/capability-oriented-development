@@ -6,7 +6,7 @@ import { bindingProblems, reviewState } from './bindings.mjs';
 import { behavior, dispose, fixture, followsPolicy, root } from './support.mjs';
 function completeFixture() {
   const directory = fixture();
-  for (const name of ['CAPABILITY.md', 'checks', 'variants', 'serve.mjs']) cpSync(join(root, name), join(directory, name), {recursive:true});
+  for (const name of ['CAPABILITY.md', 'checks', 'variants', 'serve.mjs', 'package.json']) cpSync(join(root, name), join(directory, name), {recursive:true});
   return directory;
 }
 function reaffirm(directory) {
@@ -46,4 +46,18 @@ test('a compact review cannot drop an actual screen binding', () => {
     reaffirm(directory);
     assert.ok(bindingProblems(directory).some(problem => problem.includes('implementation inventory')));
   } finally { dispose(directory); }
+});
+
+test('fresh review cannot disconnect the normal delivery command from behavior or binding checks', () => {
+  for (const verify of ['node --test checks/contract.test.mjs', 'node --test checks/bindings.test.mjs', 'echo passed']) {
+    const directory = completeFixture();
+    try {
+      const path = join(directory, 'package.json');
+      const value = JSON.parse(readFileSync(path, 'utf8'));
+      value.scripts.verify = verify;
+      writeFileSync(path, JSON.stringify(value));
+      reaffirm(directory);
+      assert.ok(bindingProblems(directory).some(problem => problem.includes('delivery command')));
+    } finally { dispose(directory); }
+  }
 });

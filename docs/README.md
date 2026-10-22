@@ -25,3 +25,5 @@ Capability-Oriented Development keeps shared responsibilities discoverable and e
 The specification defines the method. The references define the toolkit's implemented coverage. There is one release identity, in [package.json](../package.json); machine-format version fields identify compatibility formats separately.
 
 Read [verification scope](evidence.md) for runnable ownership/two-way checks and their limits.
+
+- [Maintain source maps with SCIP](scip-mapping.md): native indexers, capability bindings, source freshness and change impact.

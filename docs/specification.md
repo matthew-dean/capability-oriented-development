@@ -85,6 +85,8 @@ For example, changing a button appearance starts with inspection of the shared c
 
 The [workflow guide](workflows.md) provides commands, definitions and a runnable example. The [quickstart](quickstart.md) demonstrates behavior and ownership checks, including a behavior-correct copy that fails conformance.
 
+A code-review defect claim needs a declared input obligation or a reachable producer/call chain and counterexample. A response DTO does not establish the shape of the exception thrown by its HTTP client. Distinguish executed failures, source-proven disagreements and unverified risks before adding guards or abstractions. Requirements introduced in a maintained specification also need matching executable coverage; writing a broader promise does not verify it.
+
 ## 4. Adopting COD into an existing repository
 
 Adopt one useful responsibility at a time. Inspect the repository's real architecture, existing specs, design system, owner guidance and checks. Choose a recurring change or known duplication problem; do not remove good safeguards or rebuild the architecture just to adopt COD.
@@ -94,6 +96,10 @@ Name its owner, consumer set, requirements and supported variation in the reposi
 Route agent guidance to the [repository skill](../skills/cod-workflow/SKILL.md). Use the existing `AGENTS.md` as the canonical instructions and let tool-specific files refer to it. Introduce capability manifests and indexing where their discovery or reconciliation value justifies the maintenance. Unsupported indexing does not negate native evidence, but it cannot be reported as a successful graph check.
 
 Expand adoption only after the first responsibility's contract, checks and maintenance burden are useful. Keep observed scope, false alarms, gaps and costs visible. The [adoption procedure](workflows.md#adopt-in-an-existing-repository) supplies concrete installation and integration steps.
+
+The supplied toolkit standardizes source mapping on [SCIP](scip-mapping.md). Native producers provide definitions and references; reviewed bindings associate symbols with capability contracts. Capture source inputs during generation, invalidate maps after changes and include unchanged consumers in reverse impact. Generated maps cannot rewrite authoritative contracts or accept reviews. Mapping completeness, semantic ownership, cross-language boundaries and framework coverage remain separate obligations. Equivalent native COD implementations need not use this mapper.
+
+Mapping-assisted agent workflows identify their covered tasks, expose inspection through the repository's actual task routes and define completion obligations for refresh or reported stale coverage. Verify actual consultation and final freshness separately from conformance. A stored snapshot or installed plugin alone does not establish agent integration.
 
 ## 5. Exposure to and enforcement by agents
 
@@ -121,7 +127,7 @@ Where a consumer can partially replace an owned policy while retaining the provi
 
 Bind executed evidence to the code actually built. A test command against an older compiled assembly cannot establish conformance of changed source. Preserve failures through command pipelines, clear old result files, and rebuild source-changing probes or establish that the running provider contains the changed policy. Confirm the actuator independently before classifying a consumer failure. Compiler startup or stale hot-reload state is unresolved observation, not a successful rejection.
 
-Native test runners, type/build checks and CI can enforce these obligations. To make a gate compulsory, the adopting repository must include it in its existing check script and required CI checks. This toolkit does not automatically configure branch protection, block arbitrary file writes or control every agent.
+Native test runners, type/build checks and CI can enforce these obligations. To make a gate compulsory, the adopting repository must include it in its existing check script and required CI checks. Verify that invocation through the normal delivery entrypoint: a covered unreviewed compatible edit must expire review there, and semantic disagreement must still fail after review refresh. A standalone optional script does not establish compulsory adoption. This toolkit does not automatically configure branch protection, block arbitrary file writes or control every agent.
 
 When a compiled or running application may retain stale provider code, require an independent observation that the selected provider change reached execution. The toolkit's optional propagation `controlPath` binds that observation to a changing value in the same JSON result; a missing or unchanged control leaves evidence unresolved. A control that follows the provider cannot substitute for actual consumer observations. Qualify a consumer copy while retaining the control: the control must change and conformance must still reject the copied consumer.
 
