@@ -47,7 +47,7 @@ Research runs, transcripts, evaluator output, comparison datasets and reset patc
 
 ## Establish trustworthy checks
 
-Observe the boundary the requirement promises. An SDK capture call does not prove its configured filter accepted the event. Keep the relevant real authority in the observation path; mock unrelated transport, not the policy whose reuse is claimed. Observe the result after policy application. If that path cannot be exercised, report the integration gap rather than qualifying only the new helper and calling the responsibility covered.
+Observe the boundary the requirement promises. An SDK capture call does not prove its configured filter accepted the event. Baseline behavior must exercise the relevant real authority and observe the result after policy application; unrelated transport may be mocked. Deliberate owner substitutions may then test propagation through that same consumer path. If the real baseline path cannot be exercised, report the integration gap rather than qualifying only the new helper and calling the responsibility covered.
 
 Keep behavior, ownership and owner-change propagation separate. For behavioral propagation claims, prefer `cod verify-propagation` (bundled `docs/propagation.md`) or an equivalent native observation check: invoke actual production consumers, capture their values as JSON, substitute a compatible provider probe and capture values again. Do not replace those observations with source-pattern presence or a self-reported ownership exit code. Qualification must reject an observer that only calls the provider and never exercises the consumer.
 

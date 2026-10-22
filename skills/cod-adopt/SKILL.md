@@ -40,7 +40,7 @@ Report executed, inspected, proposed and blocked evidence separately. Missing de
 
 ## Check actual adoption and review evidence
 
-Observe the promised outcome through the relevant real policy path. A mocked SDK call can verify invocation while hiding its configured filter; it cannot qualify that policy relationship. Keep the claimed authority real, mock unrelated transport as needed and observe the result after policy application. Include existing matching authorities in inventory review before accepting a new helper's self-consistent tests. Inaccessible downstream policy remains an integration gap, not complete conformance.
+Observe the promised outcome through the relevant real policy path. A mocked SDK call can verify invocation while hiding its configured filter; it cannot qualify that policy relationship. Baseline behavior must use the real authority and observe the result after policy application; unrelated transport may be mocked. Deliberate owner substitutions may then test propagation through the same consumer path. Include existing matching authorities in inventory review before accepting a new helper's self-consistent tests. Inaccessible downstream policy remains an integration gap, not complete conformance.
 
 Verify the normal required delivery entrypoint, not only a newly named optional script: a covered unreviewed compatible edit must fail review there; restoration must pass. Semantic contract/implementation disagreements must fail even after review refresh. Confirm the CI invocation and required status separately. Keep the existing native runner; do not add a wrapper when the ordinary suite already enforces these checks.
 
