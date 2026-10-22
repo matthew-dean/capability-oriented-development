@@ -30,7 +30,8 @@
     "variants/settings-local-surface.mjs",
     "variants/team-local-surface.mjs",
     "variants/settings-theme-sharing-copy.mjs",
-    "variants/team-theme-sharing-copy.mjs"
+    "variants/team-theme-sharing-copy.mjs",
+    "package.json"
   ],
   "implementations": [
     {

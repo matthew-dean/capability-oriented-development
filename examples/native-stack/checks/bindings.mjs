@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 // Fixed coverage prevents editing the receipt to silently drop a required consumer.
 export const implementationFiles = ['src/app.mjs', 'src/button.mjs', 'src/settings.mjs', 'src/styles.css', 'src/team.mjs', 'src/theme.mjs'];
-export const contractFiles = ['src/app.mjs', 'CAPABILITY.md', 'scenarios.json', '.dependency-cruiser.cjs', 'checks/contract.test.mjs', 'checks/support.mjs', 'checks/bindings.mjs', 'checks/bindings.test.mjs', 'checks/observe.mjs', 'checks/behavior.mjs', 'checks/conformance.mjs', 'checks/theme-probe.mjs', 'serve.mjs', 'index.html', 'checks/qualification.json', 'checks/runtime.json', 'checks/workflow.json', 'checks/bindings.json',
+export const contractFiles = ['package.json', 'src/app.mjs', 'CAPABILITY.md', 'scenarios.json', '.dependency-cruiser.cjs', 'checks/contract.test.mjs', 'checks/support.mjs', 'checks/bindings.mjs', 'checks/bindings.test.mjs', 'checks/observe.mjs', 'checks/behavior.mjs', 'checks/conformance.mjs', 'checks/theme-probe.mjs', 'serve.mjs', 'index.html', 'checks/qualification.json', 'checks/runtime.json', 'checks/workflow.json', 'checks/bindings.json',
   ...['settings', 'team'].flatMap(screen => ['delegation', 'composition', 'independent-copy', 'dead-owner-decoy', 'local-surface', 'theme-sharing-copy'].map(variant => `variants/${screen}-${variant}.mjs`))];
 const digest = content => createHash('sha256').update(content).digest('hex');
 const definition = directory => JSON.parse(readFileSync(join(directory, 'checks/bindings.json'), 'utf8'));
@@ -25,6 +25,10 @@ export function bindingProblems(directory) {
   const value = definition(directory);
   const receipt = JSON.parse(readFileSync(join(directory, 'checks/review.json'), 'utf8'));
   const problems = [];
+  // This example has one supported native delivery entrypoint. Reconcile any
+  // replacement deliberately; a refreshed review cannot remove required suites.
+  const verify = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8')).scripts?.verify;
+  if (verify !== 'node --test --test-concurrency=1 checks/contract.test.mjs checks/bindings.test.mjs') problems.push('Reconcile the native delivery command and its behavior/binding checks');
   const expected = { button: ['src/button.mjs', 'src/theme.mjs', 'src/styles.css'], settings: ['src/settings.mjs'], team: ['src/team.mjs'] };
   const scope = Object.fromEntries(value.implementations.map(item => [item.id, [...item.inputs].sort()]));
   if (JSON.stringify(Object.entries(scope).sort()) !== JSON.stringify(Object.entries(expected).map(([id, files]) => [id, [...files].sort()]).sort())

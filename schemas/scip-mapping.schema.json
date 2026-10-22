@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "scipMappingVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "additionalInputs": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "producers": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cwd": {
+            "default": ".",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command",
+          "args",
+          "cwd"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "capabilities": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract": {
+            "type": "string",
+            "minLength": 1
+          },
+          "symbols": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "id",
+          "contract",
+          "symbols"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "scipMappingVersion",
+    "additionalInputs",
+    "producers",
+    "capabilities"
+  ],
+  "additionalProperties": false
+}

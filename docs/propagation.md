@@ -51,3 +51,9 @@ The runner restores original provider bytes in `finally`, including after failur
 An unavailable observer or wrong baseline cannot count as the expected exit 1 of a negative qualification case. Passing still requires review that the observer really executes all claimed consumers and the probe represents the selected responsibility. This mechanism checks declared propagation, not universal architectural quality.
 
 Try the packaged example with `cod verify-propagation examples/workflow propagation.json --allow-execution`. It records real outputs from `live/consumer.mjs`, changes only `live/owner.mjs`, and restores it afterward.
+
+## Keep the probe attached to the rule
+
+Follow the actual configured consumer call chain to the policy declaration, including imports, re-exports and supported wrappers. A loader file is not necessarily the owner. After a legitimate move, update the probe binding and source identity while preserving the same consumer examples and changed-policy expectation. Record missing execution as unresolved until the adapted probe runs; do not classify the refactor itself as a reuse failure. Change only the selected owner rule, not every similar expression in its file or an independent consumer copy.
+
+Choose cases that distinguish interacting policies. For example, an error-reporting SDK may suppress HTTP 404 while a workflow recovers from it. Checking that successful recovery emits no event would then miss an erroneous early report. Include a recoverable error that the SDK would otherwise report, such as a supported HTTP 501 fallback, and assert no event after recovery succeeds. The workflow owns recovery and relevance; the SDK owns global reporting eligibility. A copied eligibility filter can satisfy today's examples yet block the next owner-policy change.

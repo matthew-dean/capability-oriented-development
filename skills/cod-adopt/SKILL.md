@@ -31,3 +31,13 @@ Read [distributed adoption](https://github.com/matthew-dean/capability-oriented-
 Reference the owner's immutable contract export instead of duplicating its specification. Bind local clients/consumers to that revision and their native checks. Inventory inspection (`inspect-system` when available) resolves supplied identities only: it never supplies passing conformance or authenticates a remote revision. Trace a request through the real client and qualify ignored-provider/local-copy bypasses. Preserve supported provider/consumer version pairs and both change directions in required delivery; native CI infrastructure owns cross-repository triggers and release gates.
 
 Report executed, inspected, proposed and blocked evidence separately. Missing dependencies or inaccessible providers cannot count as either a product failure or a successful negative check. Respect access boundaries; guidance does not authorize modifying/publishing another repository. Vendor internals remain outside the owned adapter's conformance scope.
+
+## Check actual adoption and review evidence
+
+Verify the normal required delivery entrypoint, not only a newly named optional script: a covered unreviewed compatible edit must fail review there; restoration must pass. Semantic contract/implementation disagreements must fail even after review refresh. Confirm the CI invocation and required status separately. Keep the existing native runner; do not add a wrapper when the ordinary suite already enforces these checks.
+
+Trace a claimed defect to the declared input domain or an actual producer and consumer boundary. Separate observed failures, source-proven counterexamples and speculative risks. Inspect native exception/transport behavior before inferring it from response payload types. Do not add speculative guards or abstractions to satisfy an unsupported reviewer inference. Update probe bindings after valid owner moves without changing the consumer criteria or mutating an independent copy.
+
+## Use SCIP mapping when configured
+
+Read the bundled `docs/scip-mapping.md` or https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/scip-mapping.md. Inspect the current SCIP map before choosing owners; source changes invalidate it and can affect consumers whose files did not change. Refresh through configured native producers with `refresh-scip`; use `inspect-scip --symbol` to inspect actual definitions. Treat bindings and summaries as reviewed interpretations, not automatically accepted contracts. Preserve unresolved external, generated-code and framework edges; do not infer HTTP or messaging links from names. Native checks remain required. The current adapter uses full producer refreshes, not a watch service or incremental compiler engine.

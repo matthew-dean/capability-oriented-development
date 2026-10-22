@@ -25,6 +25,18 @@ For example, a project script can execute the adopted responsibility gate after 
 
 The project must make its chosen COD executable available. Calling this script executes trusted local commands from the registered definitions; it is not a process sandbox. A required gate exits nonzero for violations and unresolved evidence. Do not silently bypass it to get a green CI result.
 
+## Use the maintained source map
+
+For mapping-assisted adoption, use [SCIP producers and capability bindings](scip-mapping.md). Refresh source-derived declarations/references through native indexers, inspect stale-source impact and reconcile affected contracts. Generated maps belong in an ignored cache; authored responsibility definitions remain authoritative. A map refresh cannot accept changed requirements or replace behavior and propagation checks.
+
+## Verify that adoption reaches delivery
+
+A named check script or one successful manual run does not make a contract compulsory. Trace the normal delivery command to the actual behavior, ownership, propagation and change-review checks. Verify that CI invokes that command and that the intended status is required by the repository's merge policy.
+
+Challenge the integration through that normal command: a covered, behavior-preserving source edit without a current contract review must fail the review obligation. Restore the source and confirm the command passes. Separately test contract-only and implementation-only behavioral disagreements even after review identities are refreshed. These establish different properties; a fresh digest cannot excuse either semantic mismatch. Use a disposable checkout and preserve unrelated required checks. Do not repeatedly run a full application suite in every calibration variant when a focused native check observes the same obligation.
+
+The [native example](../examples/native-stack/README.md) runs binding assertions in its ordinary verification suite. Its package configuration is itself covered, and a focused test rejects removing either required suite even with fresh review identities. That deliberately supported sample command is a bounded integration contract, not a parser or proof of arbitrary CI configurations.
+
 ## When the owner is in another repository
 
 Use [distributed adoption](distributed-adoption.md) to map actual owners, import pinned contracts, verify real hand-offs and connect provider/consumer delivery. The [map inspector](system-map.md) finds inventory gaps without fetching, executing or declaring conformance. Keep existing native verification; the toolkit does not orchestrate cross-repository releases.
