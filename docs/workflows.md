@@ -29,6 +29,8 @@ The project must make its chosen COD executable available. Calling this script e
 
 For mapping-assisted adoption, use [SCIP producers and capability bindings](scip-mapping.md). Refresh source-derived declarations/references through native indexers, inspect stale-source impact and reconcile affected contracts. Generated maps belong in an ignored cache; authored responsibility definitions remain authoritative. A map refresh cannot accept changed requirements or replace behavior and propagation checks.
 
+Connect each adopted area to the [agent mapping workflow](scip-mapping.md#connect-the-agent-workflow) through the repository's actual task routes. Verify consultation and final freshness separately from implementation quality. Finish native checks and authored review changes before the final refresh; inspection can be part of the existing required verification command when freshness is an adopted obligation.
+
 ## Verify that adoption reaches delivery
 
 A named check script or one successful manual run does not make a contract compulsory. Trace the normal delivery command to the actual behavior, ownership, propagation and change-review checks. Verify that CI invokes that command and that the intended status is required by the repository's merge policy.

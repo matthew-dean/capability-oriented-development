@@ -99,6 +99,8 @@ Expand adoption only after the first responsibility's contract, checks and maint
 
 The supplied toolkit standardizes source mapping on [SCIP](scip-mapping.md). Native producers provide definitions and references; reviewed bindings associate symbols with capability contracts. Capture source inputs during generation, invalidate maps after changes and include unchanged consumers in reverse impact. Generated maps cannot rewrite authoritative contracts or accept reviews. Mapping completeness, semantic ownership, cross-language boundaries and framework coverage remain separate obligations. Equivalent native COD implementations need not use this mapper.
 
+Mapping-assisted agent workflows identify their covered tasks, expose inspection through the repository's actual task routes and define completion obligations for refresh or reported stale coverage. Verify actual consultation and final freshness separately from conformance. A stored snapshot or installed plugin alone does not establish agent integration.
+
 ## 5. Exposure to and enforcement by agents
 
 An agent can receive COD through repository instructions and the packaged skill, current source/contract documents, CLI inspection packets or read-only MCP tools. A change request need not mention a design system or reusable helper: repository guidance makes inspecting the relevant owners part of the development workflow.

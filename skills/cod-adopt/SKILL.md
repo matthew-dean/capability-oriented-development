@@ -16,6 +16,12 @@ Read the [tool selection guide](references/tool-stacks.md) and [COD specificatio
 
 For a requirement change, reconcile owner, consumers, scenarios and qualification fixtures together. Do not weaken checks to accept a duplicate or treat the contract as a one-time plan. No COD CLI, plugin, registry or specific schema is mandatory if the relationships above are maintained and enforced.
 
+## Use SCIP mapping when configured
+
+Read the bundled `docs/scip-mapping.md` or https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/scip-mapping.md. Route covered tasks to this workflow through the repository's actual instructions. Inspect the current map before choosing owners; use `inspect-scip --symbol` for definitions and read the returned source and contracts. Inspect stale-map impact on unchanged consumers before refreshing. Complete native checks and authored contract/review changes, then run configured `refresh-scip` and inspect the final state. Leave the map current or explicitly report failed refresh and stale/unresolved coverage; refresh never accepts a contract review.
+
+Treat bindings as reviewed interpretations, not automatic contracts. Preserve unresolved external, generated-code and framework edges; do not infer HTTP or messaging links from names. Native conformance checks remain required. The adapter performs full producer refreshes, not a watch service or incremental compiler engine.
+
 ## Enforce both change directions
 
 A contract change expires affected provider/consumer reviews. An implementation change requires changed requirements or explicit reaffirmation of the unchanged contract, followed by current verification. Use existing native enforcement where it fits; the portable toolkit's alternative is `changeBindings` with `requireChangeBindings: true` in the workflow. The [binding guide](https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/change-bindings.md) defines its schema and failure states.
@@ -37,7 +43,3 @@ Report executed, inspected, proposed and blocked evidence separately. Missing de
 Verify the normal required delivery entrypoint, not only a newly named optional script: a covered unreviewed compatible edit must fail review there; restoration must pass. Semantic contract/implementation disagreements must fail even after review refresh. Confirm the CI invocation and required status separately. Keep the existing native runner; do not add a wrapper when the ordinary suite already enforces these checks.
 
 Trace a claimed defect to the declared input domain or an actual producer and consumer boundary. Separate observed failures, source-proven counterexamples and speculative risks. Inspect native exception/transport behavior before inferring it from response payload types. Do not add speculative guards or abstractions to satisfy an unsupported reviewer inference. Update probe bindings after valid owner moves without changing the consumer criteria or mutating an independent copy.
-
-## Use SCIP mapping when configured
-
-Read the bundled `docs/scip-mapping.md` or https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/scip-mapping.md. Inspect the current SCIP map before choosing owners; source changes invalidate it and can affect consumers whose files did not change. Refresh through configured native producers with `refresh-scip`; use `inspect-scip --symbol` to inspect actual definitions. Treat bindings and summaries as reviewed interpretations, not automatically accepted contracts. Preserve unresolved external, generated-code and framework edges; do not infer HTTP or messaging links from names. Native checks remain required. The current adapter uses full producer refreshes, not a watch service or incremental compiler engine.
