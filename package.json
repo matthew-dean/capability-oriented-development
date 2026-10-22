@@ -40,7 +40,9 @@
     "docs/propagation.md",
     "docs/distributed-adoption.md",
     "docs/system-map.md",
-    "examples/system"
+    "examples/system",
+    "docs/scip-mapping.md",
+    "tools/scip-producer.mjs"
   ],
   "engines": {
     "node": ">=22.13 <23 || >=24 <25"

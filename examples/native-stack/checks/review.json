@@ -1,12 +1,12 @@
 {
   "reviewVersion": 2,
   "id": "shared-button",
-  "definitionDigest": "95ef59f58083cc64ac85497d7e4b9bba293eaaba77cc472e4bd96ad3b044df0e",
-  "contractDigest": "917fb6dc860b7326e8677fe35feb9eb601a04fcdab9a196b784da24e240db743",
+  "definitionDigest": "1e757e5ed521964f6e9e71299276e185d84720e86aa60f68a8999b665544caaa",
+  "contractDigest": "8bd3223dfeba8f16cdb80bf58ae4f845417246af9abba09b30ca88f88a0f2b94",
   "implementations": {
     "button": "3347f2261e6eae1702bf5a9e9caebf27f42eed8238db7b604a620eb3915ee910",
     "settings": "75987eccf0df16bb8c36ba343abfc65c05a9c2111ed745e5b992ed83f56e8cff",
     "team": "23d64f8baeaea19c21eb723880ee4fd21d89b6692b92e6b53aa1b829beeda115"
   },
-  "rationale": "Reviewed the shared Button/theme policy and both actual screens. Compact review preserves all declared implementations in both native and toolkit checks; it does not generate a second ledger or research artifacts. Current behavior and qualified propagation remain required."
+  "rationale": "Reviewed native Button/theme and both screens, their existing behavior/propagation checks and compact review inventory. The ordinary verification command continues to run both native suites. Fresh review cannot remove either suite; compatible source changes can reaffirm the same contract. Current execution remains separately required."
 }

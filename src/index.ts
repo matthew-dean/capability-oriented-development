@@ -29,3 +29,6 @@ export type {PropagationDefinition} from './propagation.js';
 
 export { systemMapSchema, inspectSystemMap } from './system-map.js';
 export type { SystemMap } from './system-map.js';
+
+export { refreshScipMap, inspectScipMap, importScipIndexes, scipMappingSchema, scipSnapshotSchema } from './scip.js';
+export type { ScipMapping, ScipSnapshot } from './scip.js';

@@ -29,6 +29,14 @@ jobs:
       # Corepack owns the pnpm/Yarn shims; --force replaces runner-provided shims in this ephemeral job.
       - run: npm install --global --ignore-scripts --force corepack@0.34.7
       - run: corepack enable
+      # pnpm's native bootstrap makes a single metadata request without retries.
+      - name: Prepare pinned pnpm
+        run: |
+          for attempt in 1 2 3; do
+            if pnpm --version; then exit 0; fi
+            if [ "$attempt" -lt 3 ]; then sleep 5; fi
+          done
+          exit 1
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm verify:pr
