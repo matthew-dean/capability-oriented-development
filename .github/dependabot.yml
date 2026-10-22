@@ -9,6 +9,10 @@ updates:
       semver-major-days: 30
       semver-minor-days: 1
       semver-patch-days: 1
+    ignore:
+      # Node declarations follow the minimum supported runtime (see threadlabs.config.json).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       compatible:
         update-types: [minor, patch]
