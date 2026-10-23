@@ -1,6 +1,6 @@
 # Use COD for a development change
 
-This guide applies the [current COD specification](specification.md). Use it alongside your normal feature specifications, development tools and project tests. Its commands produce a current evidence packet for review, not an automatic judgment of architectural fit or every consumer.
+This guide applies the [current COD specification](specification.md). Use it alongside your normal feature specifications, development tools and project tests. Its checks establish declared obligations; ordinary code review still evaluates architectural fit and consumer coverage. A separate generated evidence packet is not required.
 
 For an adoption using native tools, follow the [tool recipes](tool-recipes.md). For installation and requests in Codex, Claude Code or ChatGPT, see [agent setup](agent-setup.md). The CLI-specific steps below apply when this toolkit is the chosen enforcement stack.
 
@@ -8,12 +8,14 @@ For an adoption using native tools, follow the [tool recipes](tool-recipes.md). 
 
 1. Inspect existing source, specs, owners, design-system contracts and native checks. Choose one recurring responsibility or a reproduced reuse problem; preserve existing safeguards.
 2. Identify its common rule, actual owner, affected consumers, supported variation and current requirements in the repository's existing contract format. Record genuine gaps rather than declaring every helper a capability.
-3. Add focused behavior and calibrated ownership/evolution witnesses. Start with representative consumer probes; keep native regression/build checks as current obligations. Review fixture semantics independently.
+3. Connect executable requirements to focused behavior and ownership/evolution checks against real consumers. Challenge the checks with legitimate reuse and behavior-correct bypasses. Keep existing native regression/build checks and review the counterexamples independently. Responsibility prose alone does not enforce this relationship.
 4. Enable the repository skill as described below. Add registry manifests only when their lookup or change-routing value is useful; source-and-tests contracts can qualify without them.
-5. Register runtime and qualification definitions and run the workflow gate. Integrate it into the existing native check script and CI. Configure required CI status checks through the repository's normal administration process if the gate must block merges; the toolkit does not configure protection automatically.
+5. Make behavior, ownership/evolution and two-way change-review checks run through the existing required verification command and CI. Use native enforcement where it fits. Only if adopting the COD toolkit, register its runtime, qualification and change-binding definitions and run its workflow gate. Configure required CI status checks through the repository's normal administration process; the toolkit does not configure protection automatically.
 6. Review fit, current consumers/invariants/tests, false alarms and maintenance cost. Expand to another responsibility after this one is useful.
 
-For example, a project script can execute the adopted responsibility gate after its ordinary tests/build checks:
+For a concrete native adoption, follow the [shared-button walkthrough](../examples/native-stack/README.md#walk-through-one-change). No COD-specific JSON definitions or executable are needed.
+
+If you choose the toolkit, a project script can execute its responsibility gate after ordinary tests/build checks:
 
 ```json
 {

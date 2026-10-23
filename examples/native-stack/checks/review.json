@@ -2,11 +2,11 @@
   "reviewVersion": 2,
   "id": "shared-button",
   "definitionDigest": "1e757e5ed521964f6e9e71299276e185d84720e86aa60f68a8999b665544caaa",
-  "contractDigest": "8bd3223dfeba8f16cdb80bf58ae4f845417246af9abba09b30ca88f88a0f2b94",
+  "contractDigest": "cea10a39ff8ba78b4aca0b110702a57af2a046d09112efe299afe26a6cc263ca",
   "implementations": {
     "button": "3347f2261e6eae1702bf5a9e9caebf27f42eed8238db7b604a620eb3915ee910",
     "settings": "75987eccf0df16bb8c36ba343abfc65c05a9c2111ed745e5b992ed83f56e8cff",
     "team": "23d64f8baeaea19c21eb723880ee4fd21d89b6692b92e6b53aa1b829beeda115"
   },
-  "rationale": "Reviewed native Button/theme and both screens, their existing behavior/propagation checks and compact review inventory. The ordinary verification command continues to run both native suites. Fresh review cannot remove either suite; compatible source changes can reaffirm the same contract. Current execution remains separately required."
+  "rationale": "Reaffirm the unchanged shared-button requirements after making the contract/implementation mismatch regression derive its next radius from the current executable requirement. The gate must continue rejecting incompatible behavior at both the original and walkthrough designs."
 }

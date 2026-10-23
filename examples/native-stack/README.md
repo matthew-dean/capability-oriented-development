@@ -2,6 +2,77 @@
 
 Settings and Team use one button component. Change its design tokens once and both screens should update, including loading and disabled states. A page-local copy can look identical today while ignoring the next shared change. This example makes that copy fail verification.
 
+## Walk through one change
+
+The request is “make the action buttons pill-shaped.” Settings saves changes; Team invites a teammate. Both already use `createButton`. Keep those screen actions local and change the existing shared appearance.
+
+### 1. Locate the owner
+
+Each screen delegates creation rather than constructing its own button. Settings uses:
+
+```js
+import { createButton } from './button.mjs';
+
+export function createAction(options) {
+  return createButton('Save changes', options);
+}
+```
+
+`src/button.mjs` owns appearance and interaction states. `src/theme.mjs` supplies the design tokens. Screens own labels, actions and layout.
+
+### 2. Find the executable contract
+
+`CAPABILITY.md` explains that boundary. **It is not the whole contract.** `scenarios.json` supplies exact expected observations for both screens in normal, disabled and loading states. For example, a disabled Settings button expects these fields, among others:
+
+```json
+{
+  "screen": "settings", "state": "disabled",
+  "disabled": true, "radius": "10px",
+  "afterStatus": "Changes are up to date."
+}
+```
+
+Native assertions compare actual browser output with those examples. The unchanged status verifies that attempting activation performed no action. Propagation checks separately require both screens to follow the shared theme and component rules. Native binding checks require review when either the contract or implementation changes. Together these maintained artifacts implement this contract; no English sentence or JSON file enforces it by itself.
+
+### 3. Make the design change through that owner
+
+For this example, the new rounded design uses a `24px` radius. Update `src/theme.mjs` and the expected radius in `scenarios.json` together. Preserve the other appearance and interaction requirements. Update the deliberate copy/override test cases to the new appearance too, so they still pass current behavior and fail specifically on ownership. No production screen source change is needed.
+
+```js
+// src/theme.mjs: change the shared token.
+export const buttonTheme = {
+  background: '#3154d9', radius: '24px', padding: '10px 18px'
+};
+```
+
+These snippets describe an intentional product edit. The tests also make isolated temporary owner changes to verify propagation; those probes restore their inputs and are not product requirements.
+
+### 4. Make the wrong implementation fail
+
+A local override could look correct today while breaking the next shared update:
+
+```js
+const button = createButton('Save changes', options);
+button.style.borderRadius = '24px';
+return button;
+```
+
+The ownership tests leave the screens unchanged and inspect their rendered buttons after owner changes. For example, after the new `24px` design, the component-only probe adds `3px`: shared consumers render `27px`, while the inline radius override shown above stays at `24px` and fails. The theme-only probe separately checks token propagation.
+
+The checked-in `local-surface` fixture instead overrides background and is rejected by the theme probe; it follows the component’s radius. Supported wrappers still pass. The suite below exercises this ownership boundary with the checked-in copies and overrides against actual screens.
+
+### 5. Reconcile and verify both change directions
+
+Changing only the expected radius fails behavior against the old theme. Changing only the theme fails against the old expected radius. Updating both fixes that mismatch, but the change gate still requires current review. After reviewing the affected files, record the current identities and an explicit rationale in `checks/review.json`; `reviewState` in `checks/bindings.mjs` computes identities, not approval. A compatible refactor can reaffirm the same requirements. Broken behavior must fail even after review is refreshed.
+
+The native command runs behavior, ownership and change-review checks together:
+
+```sh
+corepack pnpm test:native-stack
+```
+
+The repository's required `verify:pr` includes that command. The standalone example's `npm run verify` runs the same two suites. A manually invoked optional check would not enforce delivery. This example runs without a COD executable or registry. Its supplied optional toolkit configuration below invokes the same native checks; native adoptions need not use toolkit definition formats.
+
 ## Run the application
 
 From the repository root, after installing its dependencies:

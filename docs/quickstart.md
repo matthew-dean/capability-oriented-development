@@ -1,4 +1,10 @@
-# Run your first COD contract
+# Try COD
+
+Start with the [shared-button walkthrough](../examples/native-stack/README.md#walk-through-one-change): one design request, the existing component, executable requirements, a bypass that fails, and required two-way verification. It uses native tools without the COD CLI. The contract includes executable obligations; an English instruction alone is insufficient.
+
+## Try the optional toolkit
+
+The remaining walkthrough uses the supplied CLI and its definition files. Choose it when you want portable execution and reconciliation rather than adding it as a prerequisite for COD.
 
 This walkthrough shows a consumer that behaves correctly but violates its shared-policy contract. You will run the valid implementation, substitute an independent copy, observe the failed ownership check and restore the consumer.
 

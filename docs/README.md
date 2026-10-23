@@ -5,7 +5,8 @@ Capability-Oriented Development keeps shared responsibilities discoverable and e
 | Your task | Start here |
 |---|---|
 | Try a versioned adopter package | [Preview setup and support](preview.md) |
-| See COD work and diagnose a violation | [Quickstart](quickstart.md) |
+| Follow a request through an executable contract | [Shared-button walkthrough](../examples/native-stack/README.md#walk-through-one-change) |
+| Try the optional CLI and diagnose a violation | [Toolkit quickstart](quickstart.md#try-the-optional-toolkit) |
 | Understand capabilities, platforms and the advance over SDD | [Architectural rationale](architecture.md) |
 | Implement COD with existing tools | [Qualifying configurations](existing-tools.md) and [recipes](tool-recipes.md) |
 | Install skills or the plugin | [Agent setup](agent-setup.md) |

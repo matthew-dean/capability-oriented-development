@@ -26,9 +26,12 @@ test('fresh review cannot excuse a button that ignores disabled state', async ()
 test('changed contract needs matching implementation, even after review is refreshed', async () => {
   const directory = completeFixture();
   try {
-    const path=join(directory,'scenarios.json'); const rows=JSON.parse(readFileSync(path,'utf8')); rows.forEach(row=>row.radius='24px'); writeFileSync(path,JSON.stringify(rows)); reaffirm(directory);
+    const path=join(directory,'scenarios.json'); const rows=JSON.parse(readFileSync(path,'utf8'));
+    const previousRadius=rows[0].radius;
+    const nextRadius=`${Number.parseFloat(previousRadius) + 14}px`;
+    rows.forEach(row=>row.radius=nextRadius); writeFileSync(path,JSON.stringify(rows)); reaffirm(directory);
     assert.deepEqual(bindingProblems(directory),[]); await assert.rejects(behavior(directory));
-    const theme=join(directory,'src/theme.mjs'); writeFileSync(theme,readFileSync(theme,'utf8').replace("'10px'","'24px'")); await behavior(directory); assert.equal(await followsPolicy(directory), true); assert.ok(bindingProblems(directory).length>0); reaffirm(directory); assert.deepEqual(bindingProblems(directory),[]);
+    const theme=join(directory,'src/theme.mjs'); writeFileSync(theme,readFileSync(theme,'utf8').replace(`radius: '${previousRadius}'`, `radius: '${nextRadius}'`)); await behavior(directory); assert.equal(await followsPolicy(directory), true); assert.ok(bindingProblems(directory).length>0); reaffirm(directory); assert.deepEqual(bindingProblems(directory),[]);
   } finally { dispose(directory); }
 });
 test('unregistered source requires explicit inventory reconciliation', () => {

@@ -20,6 +20,22 @@ Source defines actual behavior and types. Authored contracts define intent, owne
 
 COD carries specifications into ongoing architectural contracts: each change must preserve the required behavior and the responsibility relationships on which later changes rely. The [architectural rationale](architecture.md) explains this successor model and its research foundations.
 
+### What the contract consists of
+
+A COD contract is a maintained definition of a responsibility backed by executable checks. Its representation can use existing source types, schemas, tests and concise ownership notes. An English instruction such as “use the shared button” alone is not an enforced contract. A manifest alone is not one either.
+
+For the shared-button example:
+
+| Part | Concrete artifact | What it does |
+|---|---|---|
+| Responsibility and allowed variation | `CAPABILITY.md` | Names the shared button, Settings and Team; assigns appearance and interaction rules to the button, labels and actions to screens |
+| Executable requirements | `scenarios.json` and native assertions | Specify and check rendered values and interactions for both screens |
+| Ownership check | Native propagation tests | Change the real theme and component separately, then observe both screens; behavior-correct copies must fail |
+| Two-way change gate | Native binding checks and current review record | Block stale reviews after a contract or covered implementation edit; behavior checks still reject incompatibility after review |
+| Delivery enforcement | Required native verification | Runs these checks alongside other required checks |
+
+The prose explains the boundary; the executable requirements and checks enforce observable obligations; the change gate keeps review current. Review still decides whether the boundary fits and whether all relevant consumers are covered. The [walkthrough](../examples/native-stack/README.md#walk-through-one-change) follows one design request through these existing files. It introduces no new contract language or required toolkit.
+
 ### The contract binds changes in both directions
 
 A declared responsibility has two change obligations:

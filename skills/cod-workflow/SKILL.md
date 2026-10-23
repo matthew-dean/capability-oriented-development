@@ -11,6 +11,12 @@ Deliver the requested behavior through fitting shared responsibilities and keep 
 
 Read [tool stacks](references/tool-stacks.md) when adopting COD or selecting enforcement tools. Existing native tools can satisfy COD; do not introduce the COD CLI or its JSON formats just to obtain the label. Use the repository's documented verification command and maintained contract format. The CLI procedures below apply only when that toolkit is installed and adopted.
 
+## Follow one change end to end
+
+Identify the requested change, the existing responsibility owner and actual consumers. Find the executable requirements and the required command that checks them. Implement through the owner's supported boundary; run behavior and ownership/evolution checks; reconcile the contract and current review in both change directions. For a shared button, a real shared appearance change must reach the screens, while a local copy or override must fail.
+
+A responsibility note explains intent; it does not replace executable requirements or enforcement. Use existing native tests and change-review checks where sufficient. Add only missing checks, without a new registry, report or toolkit definition files unless that stack is actually adopted. Use bundled `examples/native-stack/README.md` for a concrete walkthrough, not a template for unrelated product requirements.
+
 ## Find the responsibility
 
 Read the request and affected source. Identify coherent rules below whole services or components as well as public operations. Use the repository's catalog, source search and contracts to retrieve candidates. When adopted, use `cod plan <root> <intent>` or the read-only `cod_plan` MCP tool; inspect actual source, contracts and examples to establish fit. A lexical match, import or catalog entry is not proof. If indexing does not support the repository's framework/configuration, inspect source directly and retain that structural coverage gap.
