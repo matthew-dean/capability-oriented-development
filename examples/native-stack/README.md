@@ -57,7 +57,9 @@ button.style.borderRadius = '24px';
 return button;
 ```
 
-The ownership tests leave the screens unchanged and inspect their rendered buttons after owner changes. For example, after the new `24px` design, the component-only probe adds `3px`: shared consumers render `27px`, while this override stays at `24px` and fails. The theme-only probe separately checks token propagation. Supported wrappers still pass. The suite below executes these counterexamples against the actual screens.
+The ownership tests leave the screens unchanged and inspect their rendered buttons after owner changes. For example, after the new `24px` design, the component-only probe adds `3px`: shared consumers render `27px`, while the inline radius override shown above stays at `24px` and fails. The theme-only probe separately checks token propagation.
+
+The checked-in `local-surface` fixture instead overrides background and is rejected by the theme probe; it follows the component’s radius. Supported wrappers still pass. The suite below exercises this ownership boundary with the checked-in copies and overrides against actual screens.
 
 ### 5. Reconcile and verify both change directions
 
