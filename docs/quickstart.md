@@ -1,6 +1,19 @@
 # Try COD
 
-Start with the [shared-button walkthrough](../examples/native-stack/README.md#walk-through-one-change): one design request, the existing component, executable requirements, a bypass that fails, and required two-way verification. It uses native tools without the COD CLI. The contract includes executable obligations; an English instruction alone is insufficient.
+A request arrives: “This button should look like a link.” In a Vue screen, the existing code might be:
+
+```vue
+<Button variant="outline" @click="retry">Retry</Button>
+```
+
+COD connects that request to the responsibility that already owns the behavior:
+
+1. **Find.** Inspect the imported component, its actual API and authoring guidance, even if there are no similar controls on this page. Search the design system and related controls before inventing another button.
+2. **Choose.** If this component supports `variant="link"`, select it. Retry remains an action button; link appearance does not turn it into navigation. If the option is missing, inspect the underlying library, supported composition and extension conventions. A missing wrapper option does not automatically justify a new API, and it does not permit page-local styling.
+3. **Enforce.** Run native checks against the real screen: Retry must still work with the keyboard and preserve its states. Check the declared ownership too. A correct-looking copy or local override should fail the relevant check, while legitimate composition passes. An import alone is insufficient.
+4. **Maintain.** Keep the requirements, implementation and review in agreement. A change to the shared appearance must reach the declared consumers. A compatible refactor may keep the contract unchanged, but still requires current review and verification.
+
+The component syntax above illustrates a normal application API; use the supported API in your repository. For an executable reproduction of behavior, ownership and two-way review, follow the [shared-button walkthrough](../examples/native-stack/README.md#walk-through-one-change). It runs browser checks with native tools and requires no COD CLI. The contract includes executable obligations; an English instruction alone is insufficient.
 
 ## Try the optional toolkit
 
