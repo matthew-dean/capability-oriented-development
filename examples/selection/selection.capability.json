@@ -16,6 +16,7 @@
       "export": "clear"
     }
   ],
+  "evolution": {"guidance": ["./EVOLUTION.md"]},
   "requires": [],
   "extensions": [
     "selection-policy"

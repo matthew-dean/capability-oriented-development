@@ -86,7 +86,7 @@ Describe ownership at the level of a rule or property, rather than declaring tha
 
 A consumer can compose an owner with a local responsibility. It cannot silently replace an owned decision with a copy or override. When two consumers legitimately need different behavior, express the demonstrated difference through an existing option, a proportionate owner extension, or a distinct responsibility. Document why the original obligation does not apply to an exception and test both the exception and the consumers that still share the rule. A blanket exemption from all ownership checks is not a supported variation.
 
-Discoverability is part of maintaining this boundary. Use the language people use in requests, concrete supported variations and invariant descriptions; link actual source, examples and tests. An agent must inspect those candidates before inventing a parallel owner. A failed lexical search does not establish that no fitting capability exists: inspect affected source and its dependencies as well. The toolkit searches IDs, intent, operation names, extensions and invariants, and uses resolved declaration paths as well as public source paths for proximity. It does not infer synonyms or decide semantic fit.
+Discoverability is part of maintaining this boundary. Use the language people use in requests, concrete supported variations and invariant descriptions; link actual source, examples and tests. An agent must inspect those candidates before inventing a parallel owner. A failed lexical search does not establish that no fitting capability exists: inspect affected source and its dependencies as well. The toolkit searches IDs, intent, operation names, exported API names, extensions and invariants, and uses resolved declaration paths as well as public source paths for proximity. It does not infer synonyms or decide semantic fit.
 
 ## 3. A typical COD workflow
 
@@ -181,6 +181,22 @@ SDD connects intended behavior, implementation and verification through specific
 COD aims to improve discovery of fitting owners, preserve design and policy consistency, avoid correct-but-independent copies, route later changes to their shared owners, and make selected ownership/evolution obligations checkable. It does not replace feature specifications or normal tests. SDD can also use deterministic checks and persistent contracts; these practices are compatible and are not exclusive to a product label.
 
 The [architectural rationale](architecture.md#what-the-demonstration-establishes) explains why behavior alone does not establish shared ownership and shows how to test that distinction. It separates this demonstrated mechanism from claims about adoption outcomes and long-term maintenance.
+
+## Discover how a capability may grow
+
+Discovery must expose both the available behavior and the route for changing it. For each adopted responsibility, link its existing owner guidance: supported configuration, where extensions belong, related APIs or controls to inspect, compatibility obligations and the checks that govern a change. Reuse an existing component authoring guide, package contribution guide or interface evolution policy; a second registry of rules is unnecessary.
+
+For example, “this button should look like a link” is an appearance request, not necessarily a navigation request. Inspect the existing button's supported variants before choosing a different control. If the option is absent from an application wrapper, inspect its underlying library and sibling wrappers before adding anything. Forwarding a supported native option may be sufficient. A genuinely new shared appearance belongs with the design-system owner and its conventions, while request-specific text stays with the consumer. Preserve action versus navigation semantics, defaults, accessibility and existing consumers.
+
+An absent option does not authorize a local override. An absent growth guide is a discoverability gap: inspect current source, related controls and native contracts, then establish the smallest justified extension path. Do not invent speculative shared APIs merely to fill out a contract. Growth guidance is maintained contract material: include it in the adopted change-binding inputs so edits expire the relevant reviews, and run appropriate native compatibility/behavior checks. Prose describes the path; executable rules enforce only the obligations they actually observe.
+
+With this toolkit, a capability manifest may link existing files:
+
+```json
+"evolution": {"guidance": ["../docs/component-authoring.md"]}
+```
+
+Paths are relative to the manifest and must resolve to regular files inside the application root. `cod plan` returns root-relative guide paths, the manifest and resolved declarations. The index fingerprints guide contents; `reconcile` routes guide edits to the owner and declared dependents for semantic review. It neither approves a new API nor checks that an agent read the guide. Missing `evolution` remains valid for existing manifests and is reported as `not-documented`; an invalid supplied reference fails validation. Older strict readers may reject this optional field, so upgrade the toolkit before adopting it. Equivalent native guidance and enforcement can satisfy COD without manifests.
 
 ## Implementation limits and evolution
 

@@ -16,7 +16,10 @@
     }},
     "requires": {"type": "array", "uniqueItems": true, "default": [], "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"}},
     "extensions": {"$ref": "#/definitions/strings"}, "examples": {"$ref": "#/definitions/strings"},
-    "tests": {"$ref": "#/definitions/strings"}, "invariants": {"$ref": "#/definitions/strings"}
+    "tests": {"$ref": "#/definitions/strings"}, "invariants": {"$ref": "#/definitions/strings"},
+    "evolution": {"type": "object", "additionalProperties": false, "required": ["guidance"], "properties": {
+      "guidance": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "\\S"}}
+    }}
   },
   "definitions": {"strings": {"type": "array", "uniqueItems": true, "default": [], "items": {"type": "string", "pattern": "\\S"}}}
 }

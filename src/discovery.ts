@@ -3,7 +3,7 @@ const terms = (s: string): string[] => [...new Set(s.toLowerCase().split(/[^a-z0
 export function discover(index: CapabilityIndex, query: DiscoveryQuery) {
   const tokens = terms(query.intent);
   const results = index.capabilities.filter(c => c.status !== 'retired' && (!query.domain || c.id.startsWith(`${query.domain}.`) || c.id === query.domain)).map(c => {
-    const words = [c.id, c.intent, ...c.operations.map(o => o.name), ...c.extensions].map(terms);
+    const words = [c.id, c.intent, ...c.operations.flatMap(o => [o.name, o.export]), ...c.extensions].map(terms);
     const invariants = terms(c.invariants.join(' '));
     const matches = tokens.filter(t => words.some(w => w.includes(t)) || invariants.includes(t)), proximity = (query.affectedFiles ?? []).some(f => c.operations.some(o => o.source === f || o.declaration === f) || c.manifest === f);
     const score = matches.reduce((n, t) => n + (words[0]!.includes(t) ? 3 : words[1]!.includes(t) ? 2 : 1), 0) + (proximity ? 2 : 0);

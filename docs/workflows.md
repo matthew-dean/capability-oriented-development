@@ -69,7 +69,7 @@ Use normative examples or native interface contracts as actual inputs to conform
 
 ## Make and reconcile a change
 
-1. Run `cod plan /path/to/app "the requested behavior"`; inspect candidate source, examples and constraints. Choose reuse, configuration, composition, extension or justified creation.
+1. Run `cod plan /path/to/app "the requested behavior"`; inspect candidate source, examples, constraints and linked evolution guidance. Choose reuse, configuration, composition, extension or justified creation. If an option is missing, inspect the underlying owner and related APIs before extending; use the owner’s growth rules and preserve existing consumer behavior.
 2. When indexing supports the app, capture a clean starting graph with `cod snapshot /path/to/app .cod/before.json`. The command refuses to overwrite a baseline. An unsupported index is a coverage gap; existing native verification still matters.
 3. Implement the request and update the responsible contracts and consumers. Run native feature tests and relevant integration/build checks. Preserve distinct consumer orchestration.
 4. Run `cod reconcile /path/to/app /path/to/app/.cod/before.json` when a baseline exists. Review requirement changes, affected consumers, signatures, invariants and acceptance tests; resolve or document every relevant mismatch.
