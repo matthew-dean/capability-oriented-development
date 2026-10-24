@@ -65,7 +65,7 @@ Use [portable change bindings](change-bindings.md), the [native two-way gate](..
 
 For the portable workflow, set `requireChangeBindings: true` and register definitions and review records in `changeBindings`. Bind all runtime and qualification definitions and their inputs, plus actual provider/consumer source. The strict gate rejects stale/missing reviews and uncovered evidence before execution. Review the consumer inventory: the tool cannot discover an omitted consumer from a definition that never mentions it.
 
-Use normative examples or native interface contracts as actual inputs to conformance tests. Qualify semantic disagreement in both directions, including **fresh review records with incompatible contract/implementation behavior**. Fresh hashes must not make these tests pass. Keep a compatible refactor case that passes after review without requiring an invented requirements change.
+Use normative examples or native interface contracts as actual inputs to conformance tests. Qualify semantic disagreement in both directions, including **fresh review records with incompatible contract/implementation behavior**. Fresh hashes must not make these tests pass. For each newly added behavioral promise, challenge a contradictory expected value at the same established runtime phase. Use an independent readiness signal, then settle native updates and assert the contract; the expected value must not double as the phase detector. Keep a compatible refactor case that passes after review without requiring an invented requirements change.
 
 ## Make and reconcile a change
 
