@@ -38,7 +38,10 @@ it('rejects inaccessible or escaping evolution guides rather than suggesting unv
   const root=fixture(),manifest=JSON.parse(readFileSync(join(root,'data.capability.json'),'utf8'));
   for(const file of ['missing.md','../outside.md','/etc/passwd']) {
     writeFileSync(join(root,'data.capability.json'),JSON.stringify({...manifest,evolution:{guidance:[file]}}));
-    expect(buildIndex(root).diagnostics.some(d=>d.code==='INVALID_EVOLUTION_GUIDANCE')).toBe(true);
+    const index=buildIndex(root), packet=planReuse(index,{intent:'shared data'});
+    expect(packet.validationOk).toBe(false);
+    expect(packet.diagnostics.some(d=>d.code==='INVALID_EVOLUTION_GUIDANCE')).toBe(true);
+    expect(packet.candidates).toEqual([]);
   }
 });
 
