@@ -11,6 +11,12 @@ Deliver the requested behavior through fitting shared responsibilities and keep 
 
 Read [tool stacks](references/tool-stacks.md) when adopting COD or selecting enforcement tools. Existing native tools can satisfy COD; do not introduce the COD CLI or its JSON formats just to obtain the label. Use the repository's documented verification command and maintained contract format. The CLI procedures below apply only when that toolkit is installed and adopted.
 
+## Follow one change end to end
+
+Identify the requested change, the existing responsibility owner and actual consumers. Find the executable requirements and the required command that checks them. Implement through the owner's supported boundary; run behavior and ownership/evolution checks; reconcile the contract and current review in both change directions. For a shared button, a real shared appearance change must reach the screens, while a local copy or override must fail.
+
+A responsibility note explains intent; it does not replace executable requirements or enforcement. Use existing native tests and change-review checks where sufficient. Add only missing checks, without a new registry, report or toolkit definition files unless that stack is actually adopted. Use bundled `examples/native-stack/README.md` for a concrete walkthrough, not a template for unrelated product requirements.
+
 ## Find the responsibility
 
 Read the request and affected source. Identify coherent rules below whole services or components as well as public operations. Use the repository's catalog, source search and contracts to retrieve candidates. When adopted, use `cod plan <root> <intent>` or the read-only `cod_plan` MCP tool; inspect actual source, contracts and examples to establish fit. A lexical match, import or catalog entry is not proof. If indexing does not support the repository's framework/configuration, inspect source directly and retain that structural coverage gap.
@@ -65,7 +71,7 @@ Use the additional `policy-override` role for partial bypasses and `valid-altern
 
 Change the actual configured owner policy at its existing priority. Preserve custom-property and configuration references; do not add stronger selectors or `!important` to overpower a bypass. Confirm independently that the changed provider reached execution before classifying failures; use a known control consumer or another suitable readiness check. Rebuild source-changing probes or establish running-code freshness; startup/hot-reload failures remain unresolved.
 
-Inspect the qualification fixture semantics and whether its commands really observe the claimed entrypoints. Scanning an owner-like property anywhere in a module is insufficient. Always-pass commands and kind labels do not establish reuse. Adapt registered witnesses when legitimate owner moves or refactors invalidate old bindings.
+Inspect the qualification fixture semantics and whether its commands really observe the claimed entrypoints. Verify variants pass applicable native type/build checks and current behavior before testing ownership; compiler rejection is not ownership evidence. A matching but discarded owner call must not hide conflicting requests or a locally produced final result. Scanning an owner-like property anywhere in a module is insufficient. Always-pass commands and kind labels do not establish reuse. Adapt registered witnesses when legitimate owner moves or refactors invalidate old bindings.
 
 Run `cod qualify-witness <root> <relative-definition.json> --allow-execution` to execute a declared matrix. Commands are trusted project code, not sandboxed by COD. Within an authorized development task, normal local verification includes this explicit execution flag; follow existing permission policies without inventing another approval requirement.
 
@@ -96,3 +102,13 @@ Report executed, inspected, proposed and blocked evidence separately. Missing de
 Verify the normal required delivery entrypoint, not only a newly named optional script: a covered unreviewed compatible edit must fail review there; restoration must pass. Semantic contract/implementation disagreements must fail even after review refresh. Confirm the CI invocation and required status separately. Keep the existing native runner; do not add a wrapper when the ordinary suite already enforces these checks.
 
 Trace a claimed defect to the declared input domain or an actual producer and consumer boundary. Separate observed failures, source-proven counterexamples and speculative risks. Inspect native exception/transport behavior before inferring it from response payload types. Do not add speculative guards or abstractions to satisfy an unsupported reviewer inference. Update probe bindings after valid owner moves without changing the consumer criteria or mutating an independent copy.
+
+## Discover the extension path
+
+Find both what the capability does and how it may grow. Read its existing authoring/evolution guide, underlying library API and relevant sibling controls before adding an option. For “this button should look like a link,” first check the existing button’s variants and preserve action versus navigation semantics. If a wrapper lacks an option already supported by its provider, consider supported composition or forwarding that native option before inventing behavior. Verify actual wrapper event, routing and focus behavior; do not assume prop forwarding establishes it or add redundant logic when native behavior already suffices. A genuinely new shared option belongs with its actual owner and established conventions, with meaningful compatibility and consumer tests. A missing option never authorizes page-level styling or a parallel owner.
+
+Link existing growth guidance from the responsibility contract rather than duplicating it. The toolkit supports `evolution.guidance` paths and exposes them through `cod plan`; absent guidance is reported explicitly. Keep that guidance in the adopted change-review and verification inputs. A changed fingerprint routes review; it does not establish architectural fit or prove the agent consulted the guide. If no guide exists, inspect current implementations and establish a proportionate path for the demonstrated need. Avoid speculative APIs and shared abstractions for hypothetical consumers.
+
+## Check a new promise at the right phase
+
+For stateful requirements, establish the runtime phase independently of the expected contract value, settle native updates, then assert the value. A wait for that expected value can accept a contradictory contract while the application is still in its earlier state. Use the real request/query/operation lifecycle as the readiness signal. Qualify a contract-only disagreement for each newly added behavioral promise with fresh review identities, through the same checker used for delivery; an older field's mismatch test does not cover a new promise. Use focused native calibration where possible after confirming normal-delivery routing, rather than building another verification framework.

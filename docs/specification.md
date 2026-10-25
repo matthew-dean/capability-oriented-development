@@ -20,6 +20,22 @@ Source defines actual behavior and types. Authored contracts define intent, owne
 
 COD carries specifications into ongoing architectural contracts: each change must preserve the required behavior and the responsibility relationships on which later changes rely. The [architectural rationale](architecture.md) explains this successor model and its research foundations.
 
+### What the contract consists of
+
+A COD contract is a maintained definition of a responsibility backed by executable checks. Its representation can use existing source types, schemas, tests and concise ownership notes. An English instruction such as “use the shared button” alone is not an enforced contract. A manifest alone is not one either.
+
+For the shared-button example:
+
+| Part | Concrete artifact | What it does |
+|---|---|---|
+| Responsibility and allowed variation | `CAPABILITY.md` | Names the shared button, Settings and Team; assigns appearance and interaction rules to the button, labels and actions to screens |
+| Executable requirements | `scenarios.json` and native assertions | Specify and check rendered values and interactions for both screens |
+| Ownership check | Native propagation tests | Change the real theme and component separately, then observe both screens; behavior-correct copies must fail |
+| Two-way change gate | Native binding checks and current review record | Block stale reviews after a contract or covered implementation edit; behavior checks still reject incompatibility after review |
+| Delivery enforcement | Required native verification | Runs these checks alongside other required checks |
+
+The prose explains the boundary; the executable requirements and checks enforce observable obligations; the change gate keeps review current. Review still decides whether the boundary fits and whether all relevant consumers are covered. The [walkthrough](../examples/native-stack/README.md#walk-through-one-change) follows one design request through these existing files. It introduces no new contract language or required toolkit.
+
 ### The contract binds changes in both directions
 
 A declared responsibility has two change obligations:
@@ -70,7 +86,7 @@ Describe ownership at the level of a rule or property, rather than declaring tha
 
 A consumer can compose an owner with a local responsibility. It cannot silently replace an owned decision with a copy or override. When two consumers legitimately need different behavior, express the demonstrated difference through an existing option, a proportionate owner extension, or a distinct responsibility. Document why the original obligation does not apply to an exception and test both the exception and the consumers that still share the rule. A blanket exemption from all ownership checks is not a supported variation.
 
-Discoverability is part of maintaining this boundary. Use the language people use in requests, concrete supported variations and invariant descriptions; link actual source, examples and tests. An agent must inspect those candidates before inventing a parallel owner. A failed lexical search does not establish that no fitting capability exists: inspect affected source and its dependencies as well. The toolkit searches IDs, intent, operation names, extensions and invariants, and uses resolved declaration paths as well as public source paths for proximity. It does not infer synonyms or decide semantic fit.
+Discoverability is part of maintaining this boundary. Use the language people use in requests, concrete supported variations and invariant descriptions; link actual source, examples and tests. An agent must inspect those candidates before inventing a parallel owner. A failed lexical search does not establish that no fitting capability exists: inspect affected source and its dependencies as well. The toolkit searches IDs, intent, operation names, exported API names, extensions and invariants, and uses resolved declaration paths as well as public source paths for proximity. It does not infer synonyms or decide semantic fit.
 
 ## 3. A typical COD workflow
 
@@ -125,6 +141,8 @@ Keep three claims separate:
 
 Qualify a conformance witness before relying on it. Correct delegation and valid composition must pass. A behavior-correct copy retaining an unused correct import, and a copy paired with unused owner-using options, must fail conformance while still passing behavior. Supported alternatives must pass; unsupported representations are coverage gaps. Exercise the actual configured policy: a supported filter variant need not use a primary-button implementation. Change the owner at its existing precedence and preserve configuration references; a stronger selector or `!important` probe can conceal a consumer override. Qualify meaningful partial bypasses, such as a shared component with a page-owned surface, as well as complete copies. Exercise the registered production entrypoints rather than finding an owner-like property anywhere in a module.
 
+Stateful checks must establish the observed phase independently of the contract’s expected value, settle the relevant native updates, and then assert that value. Waiting for the expected value is insufficient: a contradictory expectation can match the earlier idle state. When a change adds a behavioral promise, qualify semantic disagreement for that promise; a passing mismatch test for an older field does not cover it.
+
 The workflow gate requires registered behavior, ownership and evolution obligations, bound qualification evidence and stable fingerprints. Failed calibration or obligations block readiness. Missing evidence, timeouts, unavailable commands, changed inputs and unsupported required coverage remain unresolved. A successful gate is **ready for review**, not automatically approved architectural fit or complete consumer coverage.
 
 Where a consumer can partially replace an owned policy while retaining the provider, qualification must challenge that bypass as well as complete copies. For example, retain the shared component but override its owned surface locally. Current appearance can remain correct while the later owner change fails to reach that surface. The toolkit's optional `policy-override` case role expects behavior to pass and conformance to reject the bypass. Add valid alternatives that preserve real consumer-specific behavior, so a checker cannot qualify by requiring one exact source shape. The runner cannot infer which partial overrides or exceptions a boundary needs; review their coverage explicitly.
@@ -165,6 +183,22 @@ SDD connects intended behavior, implementation and verification through specific
 COD aims to improve discovery of fitting owners, preserve design and policy consistency, avoid correct-but-independent copies, route later changes to their shared owners, and make selected ownership/evolution obligations checkable. It does not replace feature specifications or normal tests. SDD can also use deterministic checks and persistent contracts; these practices are compatible and are not exclusive to a product label.
 
 The [architectural rationale](architecture.md#what-the-demonstration-establishes) explains why behavior alone does not establish shared ownership and shows how to test that distinction. It separates this demonstrated mechanism from claims about adoption outcomes and long-term maintenance.
+
+## Discover how a capability may grow
+
+Discovery must expose both the available behavior and the route for changing it. For each adopted responsibility, link its existing owner guidance: supported configuration, where extensions belong, related APIs or controls to inspect, compatibility obligations and the checks that govern a change. Reuse an existing component authoring guide, package contribution guide or interface evolution policy; a second registry of rules is unnecessary.
+
+For example, “this button should look like a link” is an appearance request, not necessarily a navigation request. Inspect the existing button's supported variants before choosing a different control. If the option is absent from an application wrapper, inspect its underlying library and sibling wrappers before adding anything. Supported composition may satisfy the request without growing an API. When extension is needed, forwarding a supported native option may be sufficient; verify actual event, routing and focus behavior through the wrapper instead of assuming forwarding preserves it. A genuinely new shared appearance belongs with the design-system owner and its conventions, while request-specific text stays with the consumer. Preserve action versus navigation semantics, defaults, accessibility and existing consumers.
+
+An absent option does not authorize a local override. An absent growth guide is a discoverability gap: inspect current source, related controls and native contracts, then establish the smallest justified extension path. Do not invent speculative shared APIs merely to fill out a contract. Growth guidance is maintained contract material: include it in the adopted change-binding inputs so edits expire the relevant reviews, and run appropriate native compatibility/behavior checks. Prose describes the path; executable rules enforce only the obligations they actually observe.
+
+With this toolkit, a capability manifest may link existing files:
+
+```json
+"evolution": {"guidance": ["../docs/component-authoring.md"]}
+```
+
+Paths are relative to the manifest and must resolve to regular files inside the application root. `cod plan` returns root-relative guide paths, the manifest and resolved declarations. The index fingerprints guide contents; `reconcile` routes guide edits to the owner and declared dependents for semantic review. It neither approves a new API nor checks that an agent read the guide. Missing `evolution` remains valid for existing manifests and is reported as `not-documented`; an invalid supplied reference fails validation. Older strict readers may reject this optional field, so upgrade the toolkit before adopting it. Equivalent native guidance and enforcement can satisfy COD without manifests.
 
 ## Implementation limits and evolution
 

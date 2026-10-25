@@ -11,7 +11,7 @@ Its contract connects that responsibility to executable checks. A feature must w
 | I want to… | Read or run |
 |---|---|
 | Understand COD and what qualifies | [The specification](docs/specification.md) |
-| See a working example | [Shared-button app and native checks](examples/native-stack/README.md) |
+| Walk through one change, from request to enforced contract | [Shared-button walkthrough](examples/native-stack/README.md#walk-through-one-change) |
 | Try the supplied toolkit | [CLI quickstart](docs/quickstart.md) |
 | Adopt it in an existing codebase | [Adoption workflow](docs/workflows.md#adopt-in-an-existing-repository) |
 | Use it with a coding agent | [Codex and Claude Code setup](docs/agent-setup.md) |
@@ -42,7 +42,9 @@ A typical change follows four steps:
 3. **Verify behavior and relationships.** Run native tests and qualified checks that accept valid alternatives and reject copies or partial bypasses.
 4. **Reconcile the contract.** Contract changes require current owner/consumer evidence. Covered implementation changes require contract review, even when requirements remain unchanged.
 
-A contract need not be another JSON file. Existing types, tests, interface definitions and responsibility notes can provide it. [What qualifies as COD](docs/specification.md#2-what-qualifies-as-cod) describes the supported approaches.
+The contract is a maintained definition backed by executable checks, not just an English instruction. For the button, the contract's executable examples say what each screen must render and do. Browser tests compare the real screens with those examples and check that shared changes reach them. A change gate requires current contract review after either side changes. All run during normal verification.
+
+A contract need not be another JSON file. Existing types, tests and interface definitions can enforce its obligations, with concise responsibility notes explaining ownership and supported variation. Prose alone does not supply conformance. [What qualifies as COD](docs/specification.md#2-what-qualifies-as-cod) describes the supported approaches.
 
 ## Run the example
 

@@ -9,10 +9,10 @@ export function contained(root: string, file: string): boolean {
   const rel = relative(root, file);
   return rel === '' || (!isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${sep}`));
 }
-export function reference(folder: string, path: string): string {
+export function reference(folder: string, path: string, boundary = folder): string {
   if (!path || isAbsolute(path) || /^[a-z]:|\\/i.test(path)) throw new Error(`Unsafe path: ${path}`);
   const file = resolve(folder, path);
-  if (!contained(folder, file) || !contained(realpathSync(folder), realpathSync(file))) throw new Error(`Path escapes manifest directory: ${path}`);
+  if (!contained(boundary, file) || !contained(realpathSync(boundary), realpathSync(file))) throw new Error(`Path escapes reference boundary: ${path}`);
   if (!statSync(file).isFile()) throw new Error(`Expected a regular file: ${path}`);
   return file;
 }

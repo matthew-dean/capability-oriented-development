@@ -4,6 +4,7 @@ export interface Capability {
   status: 'proposed' | 'experimental' | 'stable' | 'deprecated' | 'retired';
   operations: Operation[]; requires: string[]; extensions: string[];
   examples: string[]; tests: string[]; invariants: string[];
+  evolution?: { guidance: string[] };
 }
 export interface Diagnostic { code: string; severity: 'error' | 'warning'; file: string; message: string }
 export interface ResolvedOperation extends Operation { source: string; declaration: string | null; line: number | null; signature: string | null }

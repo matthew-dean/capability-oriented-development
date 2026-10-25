@@ -30,3 +30,9 @@ it('ranks direct intent ahead of incidental invariant matches and retains domain
   expect(discover(index(), { intent: 'keyboard focus', domain: 'backend' }).results).toEqual([]);
   expect(discover(index(), { intent: 'keyboard focus', limit: 0 }).results).toEqual([]);
 });
+
+it('finds an existing capability by its exported API when the request does not use the catalog name',()=>{
+  const result=discover(index([{...button,operations:[{...button.operations[0]!,export:'Button'}]}]),{intent:'this button should look like a link'});
+  expect(result.results.map(c=>c.id)).toEqual(['ui.action']);
+  expect(result.results[0]?.reasons).toContain('token:button');
+});

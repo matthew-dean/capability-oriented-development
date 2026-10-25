@@ -47,6 +47,10 @@ export function buildIndex(directory: string): CapabilityIndex {
       if (c.status === 'stable' && !c[kind].length) emit('INSUFFICIENT_EVIDENCE', file, `Stable capability needs ${kind}`);
       for (const path of c[kind]) try { const target = reference(dirname(file), path); read(target); evidence.add(target); } catch (e) { emit('INVALID_EVIDENCE', file, `${kind}: ${String(e)}`); }
     }
+    for (const guide of c.evolution?.guidance ?? []) {
+      try { read(reference(dirname(file), guide, root)); }
+      catch (error) { emit('INVALID_EVOLUTION_GUIDANCE', file, `${guide}: ${String(error)}`); }
+    }
     caps.push({ ...c, manifest: rel(file), operations });
   }
   caps.sort((a, b) => a.id.localeCompare(b.id) || a.manifest.localeCompare(b.manifest));
