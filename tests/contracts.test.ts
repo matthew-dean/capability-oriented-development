@@ -158,3 +158,16 @@ it('requires an explicit need and reuse decision and expires review when it chan
   f.save();
   expect(inspectContract(f.root, 'capability.json').review.state).toBe('stale');
 });
+
+it('rejects invalid mapping settings before review or cache files exist', async () => {
+  const f = fixture();
+  for (const mapping of [
+    { producers: [{ command: 'node', args: ['indexer.mjs'] }], symbols: [] },
+    { producers: [{ command: 'node', args: ['indexer.mjs', '{output}'] }], symbols: ['local 1'] },
+  ]) {
+    writeFileSync(join(f.root, 'capability.json'), JSON.stringify({ ...f.contract, mapping }));
+    expect(() => inspectContract(f.root, 'capability.json')).toThrow();
+    expect(() => f.review()).toThrow();
+    await expect(execute(f.root)).rejects.toThrow();
+  }
+});

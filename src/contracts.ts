@@ -67,6 +67,8 @@ export const contractSchema = z.object({
   if (contract.profile === 'csharp-library' && extname(contract.checks.entrypoint) !== '.csproj') issue('The C# checker must be a .csproj; it is rebuilt on every invocation');
   if (contract.profile !== 'csharp-library' && !/\.[cm]?js$/.test(contract.checks.entrypoint)) issue('The JavaScript/Vue checker must be a JavaScript entrypoint');
   if (contract.profile === 'vue-design-system' && contract.consumers.some(item => !item.alternatives.override)) issue('Vue consumers require a local-override counterexample');
+  if (contract.mapping?.producers.some(producer => !producer.args.some(arg => arg.includes('{output}')))) issue('Each mapping producer needs a fresh {output} argument');
+  if (contract.mapping?.symbols.some(symbol => symbol.startsWith('local '))) issue('Mapping symbols must be global SCIP symbols');
 });
 export type CapabilityContract = z.input<typeof contractSchema>;
 
