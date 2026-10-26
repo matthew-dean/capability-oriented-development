@@ -8,16 +8,17 @@ import stat
 import zipfile
 
 PUBLIC_DOCS = (
+    'start-here.md', 'contracts.md', 'contract-profiles.md', 'scip-mapping.md',
     'README.md', 'specification.md', 'architecture.md', 'quickstart.md',
     'workflows.md', 'runtime-contracts.md', 'presentation-checks.md',
     'existing-tools.md', 'tool-recipes.md', 'agent-setup.md',
     'agent-demonstration.md', 'preview.md', 'evidence.md', 'distributed-adoption.md', 'system-map.md', 'change-bindings.md', 'variant-qualification.md', 'propagation.md',
 )
 PUBLIC_TESTS = (
-    'system-map.test.ts', 'core.test.ts', 'planning.test.ts', 'mcp.test.ts', 'enforcement.test.ts', 'change-bindings.test.ts', 'variant-qualification.test.ts', 'propagation.test.ts',
-    'runtime-contracts.test.ts', 'workflow.test.ts', 'package.test.ts',
+    'system-map.test.ts', 'discovery.test.ts', 'core.test.ts', 'planning.test.ts', 'mcp.test.ts', 'enforcement.test.ts', 'change-bindings.test.ts', 'variant-qualification.test.ts', 'propagation.test.ts',
+    'contracts.test.ts', 'scip.test.ts', 'runtime-contracts.test.ts', 'workflow.test.ts', 'package.test.ts',
 )
-BLOCKED_PARTS = {'node_modules', 'dist', '__pycache__', '.git', 'internal', 'benchmark', 'research', 'study-evidence', 'test-results', 'coverage'}
+BLOCKED_PARTS = {'node_modules', 'dist', '__pycache__', '.git', 'internal', 'benchmark', 'research', 'study-evidence', 'test-results', 'coverage', 'bin', 'obj'}
 
 
 def build_bundle(source, destination, kind='guidance'):
@@ -55,7 +56,7 @@ def build_bundle(source, destination, kind='guidance'):
 
     for name in ['package.json', 'LICENSE', 'CHANGELOG.md']:
         add(name)
-    for directory in ['skills', 'schemas', 'examples/system', 'examples/workflow', 'examples/native-stack', 'examples/agent-adoption']:
+    for directory in ['skills', 'schemas', 'examples/system', 'examples/workflow', 'examples/native-stack', 'examples/csharp-library', 'examples/vue-design-system', 'examples/agent-adoption']:
         tree(directory)
     for name in PUBLIC_DOCS:
         add('docs/' + name)
@@ -89,7 +90,7 @@ def build_bundle(source, destination, kind='guidance'):
         files['CLAUDE.md'] = b'@AGENTS.md\n'
         add('README.md')
     else:
-        files['README.md'] = b'# COD guidance preview\n\nStart with [preview setup](docs/preview.md), [agent setup](docs/agent-setup.md) and [tool recipes](docs/tool-recipes.md). This contains skills, guides and runnable native examples, not the compiled COD toolkit.\n'
+        files['README.md'] = b'# COD guidance preview\n\nStart with [preview setup](docs/preview.md), [agent setup](docs/agent-setup.md) and [tool recipes](docs/tool-recipes.md). This contains skills, guides and example source. Build or install the COD toolkit to run the unified verification commands.\n'
     # Bind each shipped payload to a digest. This is integrity metadata, not a signature.
     files['distribution.json'] = (json.dumps({
         'version': version, 'kind': kind, 'license': metadata['license'],

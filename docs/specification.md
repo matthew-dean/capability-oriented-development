@@ -22,19 +22,22 @@ COD carries specifications into ongoing architectural contracts: each change mus
 
 ### What the contract consists of
 
-A COD contract is a maintained definition of a responsibility backed by executable checks. Its representation can use existing source types, schemas, tests and concise ownership notes. An English instruction such as “use the shared button” alone is not an enforced contract. A manifest alone is not one either.
+A COD contract is a maintained definition of a responsibility backed by executable checks. Its representation can use existing source types, schemas, tests and concise ownership notes. The toolkit's standard authoring surface is one [unified contract](contracts.md), shared by the executable JavaScript, C# and Vue profiles. An English instruction such as “use the shared button” alone is not an enforced contract. A manifest alone is not one either.
 
 For the shared-button example:
 
 | Part | Concrete artifact | What it does |
 |---|---|---|
-| Responsibility and allowed variation | `CAPABILITY.md` | Names the shared button, Settings and Team; assigns appearance and interaction rules to the button, labels and actions to screens |
-| Executable requirements | `scenarios.json` and native assertions | Specify and check rendered values and interactions for both screens |
+| Need and reuse choice | `capability.json`: `decision` | States the need, existing candidates inspected, chosen action and why it fits; requires review for necessity, consistency and duplicated responsibility |
+| Responsibility and allowed variation | `capability.json`: `owner`, `consumers`, `rules` | Names the shared button, Settings and Team; assigns appearance and interaction rules to the button, labels and actions to screens |
+| Executable requirements | `capability.json`: `requirements`, exercised by native assertions | Specify and check rendered values and interactions for both screens |
 | Ownership check | Native propagation tests | Change the real theme and component separately, then observe both screens; behavior-correct copies must fail |
-| Two-way change gate | Native binding checks and current review record | Block stale reviews after a contract or covered implementation edit; behavior checks still reject incompatibility after review |
-| Delivery enforcement | Required native verification | Runs these checks alongside other required checks |
+| Two-way change gate | Shared toolkit review gate and adjacent `.review.json` | Block stale reviews after a contract or covered implementation edit; behavior checks still reject incompatibility after review |
+| Delivery enforcement | Required `cod verify` plus native repository verification | Runs these checks alongside other required checks |
 
-The prose explains the boundary; the executable requirements and checks enforce observable obligations; the change gate keeps review current. Review still decides whether the boundary fits and whether all relevant consumers are covered. The [walkthrough](../examples/native-stack/README.md#walk-through-one-change) follows one design request through these existing files. It introduces no new contract language or required toolkit.
+Use the same [contract structure and native profile](contract-profiles.md) for C#, JavaScript and Vue adoption. The [reader guide](start-here.md) introduces each part in execution order.
+
+The prose explains the boundary; the executable requirements and checks enforce observable obligations; the change gate keeps review current. Review still decides whether the boundary fits and whether all relevant consumers are covered. The [walkthrough](../examples/native-stack/README.md#walk-through-one-change) follows one design request through these existing files. All three supplied profiles run through the same toolkit contract and enforcement engine.
 
 ### The contract binds changes in both directions
 
@@ -66,7 +69,7 @@ Several representations are valid:
 | Indexed registry | Structured capability manifests, resolved source bindings and evidence links | Structural graph checks, qualified runtime checks and reconciliation |
 | Specialized domain adapter | An explicit component, policy or presentation contract with declared coverage | A qualified domain-specific checker plus relevant behavior/integration tests |
 
-The [existing-tool configurations](existing-tools.md) show how native tools can satisfy these requirements, and the [native demonstration](../examples/native-stack/README.md) executes one configuration without the COD CLI.
+The [existing-tool configurations](existing-tools.md) show how native tools can satisfy these requirements, and the [native demonstration](../examples/native-stack/README.md) executes the unified JavaScript profile through the COD CLI.
 
 These representations can be combined. Tests themselves may express a durable contract if its responsibility, ownership, affected consumers and intended assertions are explicit and maintained. A new framework, MCP server, JSON catalog or particular helper API is not mandatory.
 
@@ -157,6 +160,8 @@ When a compiled or running application may retain stale provider code, require a
 
 | Tool | Implemented purpose | Boundary |
 |---|---|---|
+| `cod inspect`, `cod review`, `cod verify` | Read one contract, record explicit review, execute strict native checks and production alternatives | Standard profile flow; native assertions still own domain meaning |
+| `cod refresh-map` | Refresh configured SCIP producers from the same contract into an ignored cache | Source navigation, not behavioral conformance |
 | `cod check`, `cod index` / `buildIndex` | Validate manifests, resolve TypeScript exports/types, check ownership/dependencies and fingerprint scoped inputs | Structural evidence, not behavior or semantic equivalence |
 | `cod discover`, `cod plan` / `discover`, `planReuse` | Retrieve candidate capabilities, source, constraints and evidence | Lexical ranking; fit remains a review decision |
 | `cod snapshot` / `captureSnapshot` | Capture a clean, valid starting index without overwriting it | Explicit local write; not a signed attestation |
@@ -165,12 +170,12 @@ When a compiled or running application may retain stale provider code, require a
 | `cod verify-contract` / `verifyRuntimeContract` | Execute trusted registered obligations with status, bounded logs and input fingerprints | Assertion meaning and complete coverage are not inferred |
 | `cod qualify-witness` / `qualifyWitness` | Execute positive/negative calibration cases and reject an unqualified witness | Fixture semantics and production relevance require review |
 | `cod workflow` / `verifyWorkflow` | Combine qualification, current obligations, fingerprints and optional graph reconciliation | Produces a review packet; does not automatically approve a design |
-| `cod serve` / `createCodServer` | Expose inspection through stdio MCP | Six read-only tools; no arbitrary command execution |
+| `cod serve` / `createCodServer` | Expose inspection through stdio MCP | Seven read-only tools; no arbitrary command execution |
 | `skills/cod-workflow/SKILL.md` | Give agents the discovery, reuse, qualification and reconciliation workflow | Guidance requires adoption and actual adherence |
 
-The MCP tools are `cod_check`, `cod_discover`, `cod_plan`, `cod_get`, `cod_reconcile` and `cod_enforce`. Every request scans the fixed root afresh. Snapshot capture and trusted execution remain CLI/library operations.
+The MCP tools are `cod_inspect_contract`, `cod_check`, `cod_discover`, `cod_plan`, `cod_get`, `cod_reconcile` and `cod_enforce`. Every request scans the fixed root afresh. Snapshot capture and trusted execution remain CLI/library operations.
 
-The [manifest schema](../schemas/capability.schema.json) and validators define supported machine formats. The [runtime reference](runtime-contracts.md), [presentation reference](presentation-checks.md) and [workflow guide](workflows.md) define arguments, fields, exits and coverage. JSON fields such as `schemaVersion: 1` identify compatibility formats, not separate COD product releases.
+The [unified contract schema](../schemas/contract.schema.json) defines the main authoring format. The older [indexed manifest schema](../schemas/capability.schema.json) remains supported by the lower-level discovery APIs. The [runtime reference](runtime-contracts.md), [presentation reference](presentation-checks.md) and [workflow guide](workflows.md) define arguments, fields, exits and coverage. JSON fields such as `schemaVersion: 1` identify compatibility formats, not separate COD product releases.
 
 The indexed registry supports stable dotted capability IDs, unique operation bindings, lifecycle values and dependency checks. Source references resolve within their manifest directory. Stable capabilities link at least one example and test; those links establish existence only. Compiler resolution uses TypeScript sources; the separate presentation adapter handles a bounded Vue source pattern. Indexing skips symlinks and excludes generated/tool directories, and imported project source cannot escape the chosen root.
 
@@ -218,7 +223,7 @@ A third-party provider's internal review process may be unobservable. State the 
 
 Contract creation and maintenance are themselves COD work. An authoring agent must satisfy these obligations; a contract that justifies unnecessary implementation or verification machinery does not qualify merely because its checks pass.
 
-- **Establish need.** Trace each obligation to the actual request, established required behavior or an approved design. An experiment may define a hypothetical requirement in an isolated example; it cannot turn that requirement into an adopter's product scope.
+- **Establish need.** Trace each obligation to the actual request, established required behavior or an approved design. Do not treat an example's requirements as requirements for the adopting product.
 - **Add only missing information.** Reference authoritative types, schemas, interfaces and tests. Define the missing responsibility/consumer relationship without restating contracts already owned elsewhere. Keep one authoritative input inventory and a compact review record where native tools cannot bind it.
 - **Reuse verification.** Map each obligation to the repository's existing compiler, tests, visual gate or boundary tools before adding a checker. Add only the missing observation or adapter. Visual acceptance should use an established visual gate; an ownership probe may supplement it without reimplementing color analysis or screenshot comparison.
 - **Choose a proportionate implementation.** Prefer a fitting owner or supported configuration. Extend that owner when it owns the required policy. Share a stable responsibility across real consumers, while keeping differing consumer rules and simple local work local. An imagined future use does not justify a shared framework. Neither duplicated policy nor premature abstraction satisfies this obligation.
@@ -242,4 +247,4 @@ Native schemas, command bindings, ownership boundaries and review-freshness chec
 
 A scoped conformance result cannot override another required CI failure. Infrastructure or observer failures leave conformance unresolved; changed screenshots need review against the intended appearance before acceptance.
 
-Ordinary contracts, regression tests and reusable counterexample fixtures belong in source control. Research runs, empirical result archives, transcripts, evaluator records, reset patches and historical prototypes do not. Store them privately outside tracked files and PR diffs. Runtime output belongs in ignored build/test paths or CI artifacts. Research storage is separate from the adopter's development workflow.
+Keep contracts, regression tests and reusable counterexamples in source control. Write runtime output to ignored build/test paths or CI artifacts.

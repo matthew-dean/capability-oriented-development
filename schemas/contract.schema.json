@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-zA-Z][a-zA-Z0-9._-]*$"
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "javascript-library",
+        "csharp-library",
+        "vue-design-system"
+      ]
+    },
+    "responsibility": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "reuse",
+            "configure",
+            "compose",
+            "extend",
+            "create"
+          ]
+        },
+        "need": {
+          "type": "string",
+          "minLength": 1
+        },
+        "considered": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "candidate": {
+                "type": "string",
+                "minLength": 1
+              },
+              "finding": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "candidate",
+              "finding"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "action",
+        "need",
+        "considered",
+        "rationale"
+      ],
+      "additionalProperties": false
+    },
+    "owner": {
+      "type": "object",
+      "properties": {
+        "entrypoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "export": {
+          "type": "string",
+          "minLength": 1
+        },
+        "files": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "entrypoint",
+        "export"
+      ],
+      "additionalProperties": false
+    },
+    "consumers": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entrypoint": {
+            "type": "string",
+            "minLength": 1
+          },
+          "export": {
+            "type": "string",
+            "minLength": 1
+          },
+          "files": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "examples": {
+            "default": {},
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "alternatives": {
+            "type": "object",
+            "properties": {
+              "wrapper": {
+                "type": "string",
+                "minLength": 1
+              },
+              "copy": {
+                "type": "string",
+                "minLength": 1
+              },
+              "unusedImport": {
+                "type": "string",
+                "minLength": 1
+              },
+              "override": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additional": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "followsOwner": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "source",
+                    "followsOwner"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "wrapper",
+              "copy",
+              "unusedImport"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "entrypoint",
+          "export",
+          "id",
+          "alternatives"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "owns": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "consumerOwns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "allowed": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "extend": {
+          "type": "string",
+          "minLength": 1
+        },
+        "forbidden": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "owns",
+        "consumerOwns",
+        "allowed",
+        "extend",
+        "forbidden"
+      ],
+      "additionalProperties": false
+    },
+    "requirements": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {}
+    },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "entrypoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "entrypoint",
+        "files"
+      ],
+      "additionalProperties": false
+    },
+    "mapping": {
+      "type": "object",
+      "properties": {
+        "producers": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cwd": {
+                "default": ".",
+                "type": "string"
+              }
+            },
+            "required": [
+              "command",
+              "args"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "symbols": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalInputs": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "producers"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "contractVersion",
+    "id",
+    "profile",
+    "responsibility",
+    "decision",
+    "owner",
+    "consumers",
+    "rules",
+    "requirements",
+    "checks"
+  ],
+  "additionalProperties": false
+}

@@ -1,14 +1,54 @@
-# A shared button that stays shared
+# Follow one button rule from promise to test
 
-Settings and Team use one button component. Change its design tokens once and both screens should update, including loading and disabled states. A page-local copy can look identical today while ignoring the next shared change. This example makes that copy fail verification.
+Settings and Team use one shared button. The button owns its appearance and interaction rules. Each screen chooses its own words and action.
+
+Start with [the short explanation](../../docs/start-here.md). This is a JavaScript library example, checked by the same toolkit as [C#](../csharp-library/README.md) and [Vue](../vue-design-system/README.md).
+
+## Run it
+
+From the repository root, with Node 22.13+ on the 22 line or Node 24:
+
+```sh
+corepack pnpm install --frozen-lockfile
+corepack pnpm exec playwright install chromium
+corepack pnpm build
+node dist/cli.js inspect examples/native-stack capability.json
+node dist/cli.js verify examples/native-stack capability.json --allow-execution
+```
+
+The supplied review is current for the supplied source. `ready-for-review` means the declared tests passed. It is not automatic approval of the design.
+
+For a guided, step-by-step demonstration:
+
+```sh
+node examples/native-stack/checks/walkthrough.mjs
+```
+
+It changes temporary apps and reports each expected failure. It uses the same behavior/ownership assertions as the toolkit gate. It does not replace that gate.
+
+## Open these files in order
+
+| File | What to look for |
+|---|---|
+| [capability.json](capability.json) | Shared job, owner, consumers, allowed changes, expected values, alternatives and checker |
+| [src/button.mjs](src/button.mjs) | The actual owner applies the rules |
+| [src/settings.mjs](src/settings.mjs) and [src/team.mjs](src/team.mjs) | Each actual caller uses the owner |
+| [checks/contract.mjs](checks/contract.mjs) | The standard `behavior`, `ownership`, `changes` entrypoint |
+| [checks/support.mjs](checks/support.mjs) | Where promised values are compared with observations and owner changes are tested |
+
+The adjacent [capability.review.json](capability.review.json) is generated bookkeeping. You do not need to read hashes to understand the contract. The toolkit implementation lives in [src/contracts.ts](../../src/contracts.ts); there is no example-only contract runner.
 
 ## Walk through one change
 
-The request is “make the action buttons pill-shaped.” Settings saves changes; Team invites a teammate. Both already use `createButton`. Keep those screen actions local and change the existing shared appearance.
+The request is: **“Make the buttons more rounded.”** The intended new radius is `24px`.
 
-### 1. Locate the owner
+### 1. Check the need and find the owner
 
-Each screen delegates creation rather than constructing its own button. Settings uses:
+`decision` explains the need, the existing piece inspected and why we reuse it. Here both pages need the same rules and already have a shared button. A second button implementation would duplicate that responsibility. Review that choice before adding code.
+
+`owner` points to `src/button.mjs`, export `createButton`. The theme and CSS support that owner. `consumers` names the two real screens.
+
+Settings delegates like this:
 
 ```js
 import { createButton } from './button.mjs';
@@ -18,127 +58,89 @@ export function createAction(options) {
 }
 ```
 
-`src/button.mjs` owns appearance and interaction states. `src/theme.mjs` supplies the design tokens. Screens own labels, actions and layout.
+The screen chooses its words; the button owns its appearance. The contract's `rules` explain allowed options and extension. The tests enforce their declared assertions; another prose sentence does not create a new assertion by itself.
 
-### 2. Find the executable contract
+### 2. Read the promised result
 
-`CAPABILITY.md` explains that boundary. **It is not the whole contract.** `scenarios.json` supplies exact expected observations for both screens in normal, disabled and loading states. For example, a disabled Settings button expects these fields, among others:
+In the same file, `requirements.appearance.radius` is `"10px"`. One shared expectation covers both screens and all three states. The `states` section covers idle, disabled and busy behavior. Each consumer's `examples` hold its own label and action result.
 
-```json
-{
-  "screen": "settings", "state": "disabled",
-  "disabled": true, "radius": "10px",
-  "afterStatus": "Changes are up to date."
-}
+`behavior()` reads these expectations. [observe()](checks/observe.mjs) separately opens the real app and reads computed styles, activation effects and keyboard reachability. The observer never reads the contract.
+
+```text
+Contract → expected values ─┐
+                           ├─ comparison
+Real screens → observations┘
 ```
 
-Native assertions compare actual browser output with those examples. The unchanged status verifies that attempting activation performed no action. Propagation checks separately require both screens to follow the shared theme and component rules. Native binding checks require review when either the contract or implementation changes. Together these maintained artifacts implement this contract; no English sentence or JSON file enforces it by itself.
+### 3. Change only the promise
 
-### 3. Make the design change through that owner
+The guided command changes the expected radius to `24px` and leaves source alone. The same behavior assertion used for delivery rejects it:
 
-For this example, the new rounded design uses a `24px` radius. Update `src/theme.mjs` and the expected radius in `scenarios.json` together. Preserve the other appearance and interaction requirements. Update the deliberate copy/override test cases to the new appearance too, so they still pass current behavior and fail specifically on ownership. No production screen source change is needed.
-
-```js
-// src/theme.mjs: change the shared token.
-export const buttonTheme = {
-  background: '#3154d9', radius: '24px', padding: '10px 18px'
-};
+```text
+settings/idle: violates capability.json
 ```
 
-These snippets describe an intentional product edit. The tests also make isolated temporary owner changes to verify propagation; those probes restore their inputs and are not product requirements.
+The screen still renders `10px`. Saying that the change is done cannot make this assertion pass.
 
-### 4. Make the wrong implementation fail
+### 4. Change the owner too
 
-A local override could look correct today while breaking the next shared update:
+The command changes `radius` in [src/theme.mjs](src/theme.mjs) to `24px`. Both screens now match the promise without editing either screen.
 
-```js
-const button = createButton('Save changes', options);
-button.style.borderRadius = '24px';
-return button;
-```
+[The change tests](checks/changes.test.mjs) also break only the implementation by making it ignore disabled state. The unchanged promise catches that. The toolkit separately requires a current review after source or contract changes; recording review never excuses either mismatch.
 
-The ownership tests leave the screens unchanged and inspect their rendered buttons after owner changes. For example, after the new `24px` design, the component-only probe adds `3px`: shared consumers render `27px`, while the inline radius override shown above stays at `24px` and fails. The theme-only probe separately checks token propagation.
+### 5. Try a copy that looks right
 
-The checked-in `local-surface` fixture instead overrides background and is rejected by the theme probe; it follows the component’s radius. Supported wrappers still pass. The suite below exercises this ownership boundary with the checked-in copies and overrides against actual screens.
+The command starts a fresh app at `10px` and replaces Settings with [a copy that keeps an unused import](variants/settings-dead-owner-decoy.mjs).
 
-### 5. Reconcile and verify both change directions
+It passes behavior today. Then the ownership test changes only the theme. The real shared button follows; the copy does not. Ownership fails.
 
-Changing only the expected radius fails behavior against the old theme. Changing only the theme fails against the old expected radius. Updating both fixes that mismatch, but the change gate still requires current review. After reviewing the affected files, record the current identities and an explicit rationale in `checks/review.json`; `reviewState` in `checks/bindings.mjs` computes identities, not approval. A compatible refactor can reaffirm the same requirements. Broken behavior must fail even after review is refreshed.
+A second probe changes the component's radius rule by adding `3px`. This catches a copy that imports the real theme but reimplements the component rule. The probe restores exact source bytes afterward.
 
-The native command runs behavior, ownership and change-review checks together:
+## What the toolkit does with alternatives
 
-```sh
-corepack pnpm test:native-stack
-```
+Each consumer declares its alternative source files in `capability.json`. The toolkit puts each file in the real consumer's place, runs the same checker, and restores the consumer. The checker never receives the alternative's label.
 
-The repository's required `verify:pr` includes that command. The standalone example's `npm run verify` runs the same two suites. A manually invoked optional check would not enforce delivery. This example runs without a COD executable or registry. Its supplied optional toolkit configuration below invokes the same native checks; native adoptions need not use toolkit definition formats.
-
-## Run the application
-
-From the repository root, after installing its dependencies:
-
-```sh
-corepack pnpm exec playwright install chromium
-node examples/native-stack/serve.mjs
-```
-
-Open `http://127.0.0.1:4178/`. Use the Settings/Team navigation. Add `&state=busy` or `&state=disabled` to either screen URL to inspect those states.
-
-For a standalone copy, use Node 22.13+ or Node 24, run `npm ci --ignore-scripts --no-audit --no-fund`, then `npx playwright install chromium` and `npm start`. Its pinned dependencies are Playwright and dependency-cruiser; the native gate has no COD CLI dependency.
-
-## Run the checks
-
-```sh
-corepack pnpm test:native-stack
-```
-
-The native checks launch one browser at a time. They render both screens and inspect computed color, corner radius, padding, keyboard access, actual activation, loading and disabled behavior. A theme-only probe changes blue/10px corners to purple/24px corners and observes the screens again. A separate component-only probe adds 3px to the radius mapping while preserving its theme reference. This detects copies that import the real theme but independently reproduce the Button rule. Both probes restore exact source bytes afterward.
-
-Every screen is also tested with six actual implementations:
-
-| Implementation | Looks and works correctly today | Follows the shared design change |
+| Alternative | Behavior today | Ownership |
 |---|---|---|
-| Shared component | Yes | Yes |
-| Wrapper around the shared component | Yes | Yes |
-| Correct local button copy | Yes | **No — rejected** |
-| Local copy with an unused shared-component reference | Yes | **No — rejected** |
-| Shared component with a page-owned surface override | Yes | **No — rejected** |
-| Local component copy that imports the real theme and retains an unused Button import | Yes | **No — rejected** |
+| Original or wrapper | Pass | Pass |
+| Independent copy | Pass | Reject |
+| Copy with unused import | Pass | Reject |
+| Real component with local surface override | Pass | Reject |
+| Copy sharing the theme | Pass | Reject |
 
-Dependency-cruiser catches missing dependencies but admits the unused-reference decoy. The rendered change check catches that bypass and the local surface override. The override still uses the real component and follows its radius; its copied surface policy is enough to violate the declared responsibility. A source import or a matching screenshot is insufficient by itself.
+A `PASS` beside a copy means it was rejected as expected. A browser crash is unresolved evidence, not a caught copy. [Readable native test cases](checks/contract.test.mjs) illustrate the same assertions for readers; the normal gate gets its case table from the contract.
 
-[The contract](CAPABILITY.md), [browser observer](checks/observe.mjs), [propagation check](checks/support.mjs) and [qualification tests](checks/contract.test.mjs) are small enough to inspect. The binding tests separately demonstrate that contract edits expire consumer evidence, source edits require contract review, and fresh review identities cannot excuse incompatible behavior. A compatible change can reaffirm the existing contract explicitly.
+The native checker also checks this app's independent source inventory and delivery entrypoint. The observer visits both screens independently of the contract, so deleting Team from the contract cannot quietly erase its observations.
 
 ## Reproduce both change directions
 
-Run the native binding tests from the repository root:
-
 ```sh
-node --test --test-concurrency=1 examples/native-stack/checks/bindings.test.mjs
+node --test --test-concurrency=1 examples/native-stack/checks/changes.test.mjs
 ```
 
-The tests create disposable fixtures and restore/remove them afterward. They demonstrate three different obligations:
+These focused assertions are also run by the toolkit's required `changes` mode. Shared toolkit regressions test missing/stale review, fresh review with broken behavior, unavailable checks, altered inputs and source restoration.
 
-- Editing the contract or a covered implementation expires its review, including a behavior-preserving edit. Explicit reaffirmation can close that freshness obligation.
-- Changing the executable appearance examples without changing the theme fails behavior, even after the review identities are refreshed. Updating the matching theme makes behavior pass and requires a current implementation review.
-- Changing the button to ignore disabled state fails behavior against the unchanged contract, even with fresh review identities.
+## Make an intentional change
 
-The [test source](checks/bindings.test.mjs) shows the mutations and assertions. Fresh review records establish that someone reconciled the current inputs; they cannot excuse incompatible behavior. No source changes are required to reproduce these tests.
-
-## Use the toolkit workflow too
-
-After building this COD checkout, run from its root:
+Update the owner and changed requirement. Update deliberate copies/overrides to the new baseline too: they must still pass today's behavior and fail specifically on ownership. Review the changed agreement, then:
 
 ```sh
-node dist/cli.js workflow examples/native-stack checks/workflow.json --allow-execution
+node dist/cli.js review examples/native-stack capability.json --reason "Explain the reviewed design change and affected screens"
+node dist/cli.js verify examples/native-stack capability.json --allow-execution
 ```
 
-The toolkit applies twelve reviewed production variants and runs the same native behavior/conformance commands used for live verification. Strict change bindings cover the component, theme and both screens. The correct app becomes `ready-for-review`; copy/decoy cases must retain behavior and fail conformance. A checker error is unresolved coverage, not a successful rejection.
+The repository's normal `verify:pr` runs this exact toolkit gate. In an installed package consumer, `npm run verify` in the example invokes `cod verify`; install the COD tarball in that workspace first. There is no independently maintained native review implementation.
 
-Verification temporarily changes source. Use a disposable copy or exclusive access and run one verification process at a time. Do not overlap browser tests or edits in this tree.
+## Where is the index?
 
-## What this demonstrates
+`owner` and `consumers` are the authored file map. `cod inspect` displays them. This small example has no generated SCIP map, and the tool says so.
 
-This is a hand-authored executable example, not a full-application LLM comparison. It shows how to make a specific design-system bypass fail delivery using existing tools. The [verification guide](../../docs/evidence.md) explains the declared scope. These checks do not establish universal design quality, complete consumer discovery or every accessibility property.
+Larger projects may configure `mapping` in the same contract. `cod refresh-map` writes `.cod/cache/<id>.json`; inspection and verification report its freshness. Source references help find consumers but do not prove use of the owner's result. See [the contract reference](../../docs/contracts.md#optional-scip-mapping-uses-this-same-file).
 
-Native checks and the optional toolkit workflow share `checks/review.json`. Its compact format stores the contract identity once, implementation identities by ID and one scoped explanation. A code edit does not produce a second ledger, per-change proof archive or reset patches.
+## View the app
+
+```sh
+node examples/native-stack/serve.mjs
+```
+
+Open `http://127.0.0.1:4178/`. Use the screen navigation and `&state=busy` or `&state=disabled` to inspect the states. Run one verification process at a time. These checks cover the declared sample behavior, not every accessibility property.

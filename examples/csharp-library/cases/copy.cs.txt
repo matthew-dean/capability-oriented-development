@@ -1,0 +1,7 @@
+namespace Shop;
+
+public static class Checkout
+{
+    // Correct today, but this separate formula ignores tomorrow's pricing rule.
+    public static decimal Total(decimal subtotal) => subtotal * 0.9m;
+}

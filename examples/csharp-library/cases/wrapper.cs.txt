@@ -1,0 +1,7 @@
+namespace Shop;
+
+public static class Checkout
+{
+    public static decimal Total(decimal subtotal) => CalculateOrder(subtotal);
+    private static decimal CalculateOrder(decimal subtotal) => Pricing.Total(subtotal);
+}

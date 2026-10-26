@@ -4,6 +4,31 @@ This toolkit uses [SCIP](https://github.com/scip-code/scip) as its code-mapping 
 
 The toolkit accepts the JSON emitted by the official `scip print --json` command. It delegates binary decoding to that CLI. No Sourcegraph account, upload, graph database or hosted service is required. SCIP is the toolkit’s source-map interchange; COD can still be implemented with equivalent native contracts and verification without this mapper. The [mapping schema](../schemas/scip-mapping.schema.json) describes producer configuration; CLI validation also checks path safety, global-symbol bindings and fresh output arguments.
 
+## Find the files before configuring anything
+
+There is no SCIP index hidden in the shared-button example. Its `capability.json` explicitly names its owner and two consumers, and native tests enforce their relationship. Use the [reader guide](start-here.md) and [walkthrough](../examples/native-stack/README.md) to understand that contract first.
+
+A unified contract keeps producer configuration and reviewed symbol bindings in its optional `mapping` section. The only extra file is generated:
+
+| File | Who maintains it? | Purpose |
+|---|---|---|
+| `capability.json` | You and your reviewers | Responsibility, code paths, tests and optional indexer setup |
+| `.cod/cache/<id>.json` | The toolkit | Ignored declarations, references and source fingerprints |
+
+The mapping sequence is:
+
+```text
+source + native project configuration
+    → language indexer
+    → SCIP declarations and references
+    → reviewed symbol-to-contract binding
+    → query results linking source, candidate consumers and the contract
+```
+
+For example, a compiler reports a definition of `CalculateTotal` and references from Checkout and Invoice. A person or agent reviews that source and binds its exact emitted symbol to the pricing contract. The tool can now navigate from a reference to that contract. It cannot infer that a caller uses the calculated total rather than discarding it; a consumer test establishes that separately.
+
+`mapping.symbols` contains exact compiler identities, not names invented by an LLM. The enclosing contract supplies its own ID and path. Query them first. Open the returned source and contract; avoid reading the entire generated map as prose.
+
 ## Set up the producers
 
 Install the [SCIP CLI](https://github.com/scip-code/scip#installing-the-scip-cli), [scip-dotnet](https://github.com/sourcegraph/scip-dotnet#local-install) for C#/Visual Basic, and [scip-typescript](https://github.com/sourcegraph/scip-typescript) for TypeScript/JavaScript. Pin them in the project's existing toolchain and preserve its runtime, restore and build configuration. Compiler indexes need the real project configuration and dependencies.
@@ -12,37 +37,66 @@ Use the bundled `tools/scip-producer.mjs` bridge or a native equivalent. The bri
 
 ```json
 {
-  "scipMappingVersion": 1,
-  "producers": [
-    {"command":"node","args":["/tools/COD/tools/scip-producer.mjs","{output}","dotnet","tool","run","scip-dotnet","index","App.sln","--output","{index}"]},
-    {"command":"node","args":["/tools/COD/tools/scip-producer.mjs","{output}","pnpm","exec","scip-typescript","index","web/tsconfig.json","--output","{index}"]}
-  ],
-  "capabilities": []
+  "mapping": {
+    "producers": [
+      {
+        "command": "node",
+        "args": [
+          "/tools/COD/tools/scip-producer.mjs",
+          "{output}",
+          "dotnet",
+          "tool",
+          "run",
+          "scip-dotnet",
+          "index",
+          "App.sln",
+          "--output",
+          "{index}"
+        ]
+      },
+      {
+        "command": "node",
+        "args": [
+          "/tools/COD/tools/scip-producer.mjs",
+          "{output}",
+          "pnpm",
+          "exec",
+          "scip-typescript",
+          "index",
+          "web/tsconfig.json",
+          "--output",
+          "{index}"
+        ]
+      }
+    ],
+    "symbols": []
+  }
 }
 ```
 
-Save this as `.cod/scip.json`. Ignore a generated cache directory, such as `.cod/cache/`. Keep the producer definition and authored contracts in source control. Commands execute with the repository root as their default working directory; set a producer's `cwd` when needed. `{output}` receives a fresh temporary JSON path; `{index}` is the bridge's temporary binary path.
+Add this `mapping` section to the existing `capability.json`. Ignore a generated cache directory, such as `.cod/cache/`. Keep the producer definition and authored contracts in source control. Commands execute with the repository root as their default working directory; set a producer's `cwd` when needed. `{output}` receives a fresh temporary JSON path; `{index}` is the bridge's temporary binary path.
 
 Reuse the same ignored snapshot path across sessions. Agents query it through the inspector; the full graph need not be copied into a prompt. Inspection reads the saved map and current source inventory without running indexers or installing tools.
 
 ```sh
-cod refresh-scip . .cod/scip.json .cod/cache/map.json --allow-execution
-cod inspect-scip . .cod/cache/map.json --symbol shouldReport
+cod refresh-map . capability.json --allow-execution
+cod inspect . capability.json --json
+cod inspect-scip . .cod/cache/your-capability-id.json --symbol shouldReport
 ```
 
-`refresh-scip` invokes explicitly trusted project commands, not a sandbox. It captures the Git tracked and nonignored untracked file inventory and contents before and after production. It accepts documents only inside that captured inventory, rejects unsafe paths and mismatching embedded text, and retains the previous snapshot on failed production/import. Keep simultaneous edits and other source-changing checks out of that checkout. Generated/ignored source documents outside the inventory are unresolved coverage; they are not silently considered fresh. List required generated declaration paths in optional `additionalInputs` after native preparation. They must exist before indexing and remain unchanged during production; later edits or removal invalidate the map too. This extends source capture without tracking generated files in Git.
+`refresh-map` invokes explicitly trusted project commands, not a sandbox. It captures the Git tracked and nonignored untracked file inventory and contents before and after production. It accepts documents only inside that captured inventory, rejects unsafe paths and mismatching embedded text, and retains the previous snapshot on failed production/import. Keep simultaneous edits and other source-changing checks out of that checkout. Generated/ignored source documents outside the inventory are unresolved coverage; they are not silently considered fresh. List required generated declaration paths in optional `additionalInputs` after native preparation. They must exist before indexing and remain unchanged during production; later edits or removal invalidate the map too. This extends source capture without tracking generated files in Git.
 
 Configure native indexers to include authored source and exclude compiled bundles, such as `storybook-static`, coverage output and build directories. Keep authored stories and tests when they are part of the intended coverage. Required generated declarations belong in `additionalInputs`; accepting every generated bundle would obscure the boundary rather than improve it.
 
 ## Bind capabilities without generating new contracts
 
-Inspection returns a scoped capability summary and unresolved-reference count. The symbol query returns matching definitions, source ranges and references; the ignored snapshot retains the full graph. Producer diagnostics are returned by refresh so native warnings can be reviewed. Inspect the source and native contracts, then add a binding to the producer definition:
+Inspection returns a scoped capability summary and unresolved-reference count. The symbol query returns matching definitions, source ranges and references; the ignored snapshot retains the full graph. Producer diagnostics are returned by refresh so native warnings can be reviewed. Inspect the source and native contracts, then place its exact global symbols in the contract:
 
 ```json
-{"id":"monitoring.eligibility","contract":"docs/monitoring.md","symbols":["scip-typescript npm application 1 src/policy.ts/shouldReport()."]}
+{"symbols":["scip-typescript npm application 1 src/policy.ts/shouldReport()."]}
 ```
 
-Put that object in `capabilities`, using the **actual** emitted global symbol, then refresh the map. A binding can contain several symbols. Local SCIP identifiers are document-scoped and cannot serve as global capability bindings. Missing definitions remain unresolved bindings. Imported references without indexed definitions remain visible as unresolved external references; they are not proof that the dependency is absent.
+Set `mapping.symbols` using the **actual** emitted global symbol, then record review and refresh the map. A binding can contain several symbols. Local SCIP identifiers are document-scoped and cannot serve as global capability bindings. Missing definitions remain unresolved bindings. Imported references without indexed definitions remain visible as unresolved external references; they are not proof that the dependency is absent.
 
 The tool does not infer capability meaning, generate prose contracts or accept reviews. Its initial unbound symbol list is a source inventory for adoption, not an architectural specification. Stable capability IDs remain separate from compiler symbol identities, which can change during refactoring.
 
@@ -53,7 +107,7 @@ A stored map or installed plugin does not put mapping into the agent's task flow
 For example, adapt this instruction to the project's adopted areas and skill location:
 
 ```markdown
-For changes covered by .cod/scip.json, read
+For changes covered by capability.json, read
 .agents/skills/cod-workflow/SKILL.md before choosing an owner.
 Inspect the map and read the returned source and contracts. Complete native
 checks and authored contract/review updates before the final map refresh
@@ -73,13 +127,7 @@ Use this order for a workflow that promises a maintained map:
 3. Complete native verification and authored contract/review changes. Let preparation and source-changing qualification checks finish before the final index run.
 4. Refresh the same cache path, then inspect it again. Leave it current or explicitly report failed refresh and stale/unresolved coverage. Updating a review record after refresh changes captured source and can require another refresh.
 
-The existing inspector can enforce freshness where the project requires it. Append its invocation to the existing verification entrypoint after native checks and authored review are complete:
-
-```sh
-cod inspect-scip . .cod/cache/map.json
-```
-
-Confirm that the required entrypoint actually reaches this command; a separately named optional script does not enforce it. A clean CI checkout needs producer setup and an initial refresh before inspection because the cache is ignored. Keep independent behavior, ownership and contract-review checks in delivery; a fresh map cannot replace them. Refreshing never accepts a contract review automatically.
+With `mapping` configured, `cod verify` already requires freshness before and after its checks. Make that command part of required delivery. For an older separate mapper integration, explicitly include `cod inspect-scip` in the required delivery command. A clean CI checkout needs producer setup and an initial refresh before inspection because the cache is ignored. Keep independent behavior, ownership and contract-review checks in delivery; a fresh map cannot replace them. Refreshing never accepts a contract review automatically.
 
 A failed refresh retains the previous snapshot, but preparation may already have changed captured generated declarations. Inspect the retained map's state; retention does not imply freshness. Recover through a successful refresh after resolving the producer/input problem.
 
@@ -92,3 +140,7 @@ References are not necessarily calls, and a reference does not prove policy dele
 For Vue/Nuxt, explicitly check component scripts, templates, auto-imports and generated types. Ordinary TypeScript indexing does not guarantee that those relationships are covered. HTTP, messaging and database boundaries between C# and TypeScript also need their native interface contracts and [distributed bindings](distributed-adoption.md); matching names cannot invent a cross-language edge.
 
 `mapped` means the configured producers ran with stable captured source inputs. `current` means that inventory still matches. Neither means that the application conforms to COD. Integrate the independent contract checks through the [normal required delivery command](workflows.md#verify-that-adoption-reaches-delivery).
+
+## Older mapper integrations
+
+Existing integrations may keep a separate `scipMappingVersion: 1` producer definition with `capabilities: [{id, contract, symbols}]`, using `cod refresh-scip <root> <definition> <ignored-snapshot> --allow-execution`. This lower-level API remains supported. It is not an additional file required by the unified contract.

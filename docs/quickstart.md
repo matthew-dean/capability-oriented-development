@@ -1,101 +1,63 @@
-# Try COD
+# Run a contract, then watch a mistake fail
 
-A request arrives: “This button should look like a link.” In a Vue screen, the existing code might be:
-
-```vue
-<Button variant="outline" @click="retry">Retry</Button>
-```
-
-COD connects that request to the responsibility that already owns the behavior:
-
-1. **Find.** Inspect the imported component, its actual API and authoring guidance, even if there are no similar controls on this page. Search the design system and related controls before inventing another button.
-2. **Choose.** If this component supports `variant="link"`, select it. Retry remains an action button; link appearance does not turn it into navigation. If the option is missing, inspect the underlying library, supported composition and extension conventions. A missing wrapper option does not automatically justify a new API, and it does not permit page-local styling.
-3. **Enforce.** Run native checks against the real screen: Retry must still work with the keyboard and preserve its states. Check the declared ownership too. A correct-looking copy or local override should fail the relevant check, while legitimate composition passes. An import alone is insufficient.
-4. **Maintain.** Keep the requirements, implementation and review in agreement. A change to the shared appearance must reach the declared consumers. A compatible refactor may keep the contract unchanged, but still requires current review and verification.
-
-The component syntax above illustrates a normal application API; use the supported API in your repository. For an executable reproduction of behavior, ownership and two-way review, follow the [shared-button walkthrough](../examples/native-stack/README.md#walk-through-one-change). It runs browser checks with native tools and requires no COD CLI. The contract includes executable obligations; an English instruction alone is insufficient.
-
-## Try the optional toolkit
-
-The remaining walkthrough uses the supplied CLI and its definition files. Choose it when you want portable execution and reconciliation rather than adding it as a prerequisite for COD.
-
-This walkthrough shows a consumer that behaves correctly but violates its shared-policy contract. You will run the valid implementation, substitute an independent copy, observe the failed ownership check and restore the consumer.
-
-The example demonstrates verification mechanics. Use your application's production consumers and native checks when adopting COD.
-
-## 1. Build the toolkit
-
-You need this repository checkout, Node 22.13+ on the 22 line or Node 24, and pnpm through Corepack. Run the following terminal commands from the repository root:
+Read [the short explanation](start-here.md), then build the toolkit:
 
 ```sh
 corepack pnpm install --frozen-lockfile
+corepack pnpm exec playwright install chromium
 corepack pnpm build
 ```
 
-The next commands use a POSIX shell on macOS or Linux. The CLI itself is invoked through Node; no global `cod` installation is required.
+Use Node 22.13+ on the 22 line or Node 24. The C# example also needs .NET 10.
 
-## 2. Copy the example
-
-Keep the checkout as the current directory. Use a fresh temporary workspace, because the probe temporarily changes and restores its owner:
+## Inspect before executing
 
 ```sh
-cod_demo_dir=$(mktemp -d)
-cp -R examples/workflow/. "$cod_demo_dir/"
+node dist/cli.js inspect examples/native-stack capability.json
 ```
 
-The copied files have distinct roles:
+The output names the owner, both consumers, the native checker modes and the review/map states. Open the returned files. Add `--json` for the full input and counterexample list.
 
-| File | Role |
-|---|---|
-| `live/owner.mjs` | Owns shared relative-time wording |
-| `live/consumer.mjs` | Uses that rule through its supported interface |
-| `probe.mjs` | Checks behavior and observes owner-only changes through the consumer |
-| `cases/` | Valid and invalid implementations used to calibrate the probe |
-| `qualification.json` | Declares calibration cases and expected conformance roles |
-| `runtime.json` | Declares current behavior, ownership and evolution obligations |
-| `workflow.json` | Binds qualification to obligations and records the reuse decision |
-
-Inspect those files before authorizing execution. `--allow-execution` permits trusted commands from the definitions; it does not sandbox them.
-
-## 3. Qualify and verify
+## Verify
 
 ```sh
-node dist/cli.js qualify-variants "$cod_demo_dir" qualification.json --allow-execution
-node dist/cli.js workflow "$cod_demo_dir" workflow.json --allow-execution
+node dist/cli.js verify examples/native-stack capability.json --allow-execution
 ```
 
-Both commands emit JSON. The qualification state should be `qualified`, and the workflow state should be `ready-for-review`; both exit 0. The calibration accepts delegation and composition and rejects the independent-copy and dead-owner-decoy cases while their behavior remains correct.
+Expected result: `ready-for-review`. Wrappers should report ownership exit `0`; copies and overrides should report ownership exit `1` while behavior remains `0`. Each line marked `PASS` means the expected outcome occurred, including the intended rejections.
 
-Read the workflow's review obligations. Readiness establishes the registered observations with stable inputs. You still review whether the selected owner fits, the cases mean what they claim and the consumer set is complete. In this small example, ownership and evolution use the same propagation probe; a real contract may need distinct checks for additional evolution promises.
+The explicit flag permits trusted project execution and temporary source substitutions. It is not a sandbox. Run one verification process at a time.
 
-## 4. Introduce a behavior-correct violation
+## Follow a failure step by step
 
 ```sh
-cp "$cod_demo_dir/cases/independent-copy/consumer.mjs" "$cod_demo_dir/live/consumer.mjs"
-(cd "$cod_demo_dir/live" && node ../probe.mjs behavior)
-node dist/cli.js workflow "$cod_demo_dir" workflow.json --allow-execution
+node examples/native-stack/checks/walkthrough.mjs
 ```
 
-The behavior command exits 0. The strict workflow reports `unresolved` and exits 2 because the consumer edit expired its review. Inspecting the ownership command directly also rejects the copy: `(cd "$cod_demo_dir/live" && node ../probe.mjs conformance)` exits 1. The live consumer keeps the current wording but no longer follows an owner-only change. The reusable check was calibrated against this kind of copy before it was used as a gate.
+This teaching command uses temporary apps and the same native assertions. It explains a contract-only radius change failing, the matching owner change passing, and a correct-looking copy failing ownership. It does not replace the full toolkit gate above.
 
-## 5. Restore and rerun
+[Read the full button walkthrough](../examples/native-stack/README.md).
+
+## Try the same flow in C# or Vue
 
 ```sh
-cp examples/workflow/live/consumer.mjs "$cod_demo_dir/live/consumer.mjs"
-node dist/cli.js workflow "$cod_demo_dir" workflow.json --allow-execution
+node dist/cli.js verify examples/csharp-library capability.json --allow-execution
+node dist/cli.js verify examples/vue-design-system capability.json --allow-execution
 ```
 
-The workflow returns to `ready-for-review`. Your original checkout and its example remain unchanged. The temporary workspace can be deleted after inspection.
+See the [profiles](contract-profiles.md) for their actual native execution. Each uses the same schema and toolkit.
 
-## Resolve unexpected results
+## After a real edit
 
-| Result | What to inspect |
-|---|---|
-| `INVALID_INPUT` | Run from the checkout root; verify the supplied application root and root-relative definition paths |
-| `unresolved` | Read command errors, missing executable details, timeouts or changed-input evidence; restore any files a probe failed to restore |
-| `unqualified` | Inspect each calibration case; an always-passing checker cannot reject copies |
-| Copy still becomes ready | Check that you changed `live/consumer.mjs`, then inspect whether the witness actually invokes that consumer |
+Reconcile changed requirements, source and counterexamples. Record what you reviewed, then run verification:
 
-For the visual version, run the [shared-button application](../examples/native-stack/README.md): two real screens, browser checks and deliberate local style copies.
+```sh
+node dist/cli.js review examples/native-stack capability.json --reason "Explain the reviewed change and affected consumers"
+node dist/cli.js verify examples/native-stack capability.json --allow-execution
+```
 
-Next, [adopt one responsibility in an existing repository](workflows.md#adopt-in-an-existing-repository). Preserve its feature specs and native verification, route agents to the workflow skill, and author obligations against the actual consumer boundary. Use the [runtime reference](runtime-contracts.md) for complete field and execution rules.
+A refreshed review cannot excuse incompatible behavior. A stale review cannot be silently ignored. See [the contract reference](contracts.md) for inputs, exits and optional source maps.
+
+## Next steps
+
+[Adopt a contract in your project](workflows.md), [set up agent guidance](agent-setup.md), or look up a field in the [contract reference](contracts.md).

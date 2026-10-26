@@ -1,0 +1,11 @@
+{
+  "reviewVersion": 2,
+  "id": "vue-button",
+  "definitionDigest": "de5c87776ddadf8eaa8f22fcb83a4795b541750258ee56f05ab4430f530530b5",
+  "contractDigest": "29d82de1deaf9161782b2175e128620821dd24dbe71ecbb0c45357b740b643e3",
+  "implementations": {
+    "owner": "4b72e4372b1f4cd219c2c394f6a112a4bfae4e5f7e75c80031e58747cb6afa7e",
+    "settings": "71bb5687e71d994b6dedd53c736b6fd4826b4f78c3c15831a4a4b95de3c5129f"
+  },
+  "rationale": "Reviewed the need and existing owner, responsibility boundaries, real consumer observations, correct-looking bypass cases, and checks for disagreement in both change directions. Reuse avoids a second owner for the same rule; native tests still must pass."
+}

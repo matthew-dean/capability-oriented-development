@@ -1,0 +1,173 @@
+import { execFileSync } from 'node:child_process';
+import { z } from 'zod';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, expect, it } from 'vitest';
+import { contractSchema, inspectContract, recordContractReview, refreshContractMap, verifyContract } from '../src/contracts.js';
+
+const roots: string[] = [];
+afterEach(() => roots.splice(0).forEach(root => rmSync(root, { recursive: true, force: true })));
+
+function fixture() {
+  const root = mkdtempSync(join(tmpdir(), 'cod-one-contract-'));
+  roots.push(root);
+  writeFileSync(join(root, 'owner.mjs'), 'export const value = () => "shared";');
+  writeFileSync(join(root, 'consumer.mjs'), 'export {value as run} from "./owner.mjs";');
+  writeFileSync(join(root, 'wrapper.mjs'), 'import {value} from "./owner.mjs"; export const run = () => value();');
+  writeFileSync(join(root, 'copy.mjs'), 'export const run = () => "shared";');
+  writeFileSync(join(root, 'decoy.mjs'), 'import {value} from "./owner.mjs"; export const run = () => { value(); return "shared"; };');
+  // Both modes observe the real consumer. The mode, not the fixture label, is
+  // passed by the toolkit. The owner is restored even when the assertion fails.
+  writeFileSync(join(root, 'check.mjs'), `
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+const mode=process.argv[2];
+const contract=JSON.parse(readFileSync(process.argv[3],'utf8'));
+const original=readFileSync('owner.mjs');
+try {
+  if(mode==='ownership') writeFileSync('owner.mjs','export const value = () => "changed-owner";');
+  const {run}=await import('./consumer.mjs');
+  if(mode!=='changes') assert.equal(run(),mode==='ownership'?'changed-owner':contract.requirements.expected);
+} catch(error) { console.error(error); process.exitCode=error instanceof assert.AssertionError?1:2; }
+finally {writeFileSync('owner.mjs',original);}
+`);
+  const contract = {
+    contractVersion: 1, id: 'word', profile: 'javascript-library',
+    responsibility: 'Consumers use the shared wording',
+    decision: { action: 'reuse' as const, need: 'The screen needs shared wording.', considered: [{ candidate: 'owner.mjs', finding: 'Already owns the wording.' }], rationale: 'Use the existing owner instead of copying its wording.' },
+    owner: { entrypoint: 'owner.mjs', export: 'value' },
+    consumers: [{ id: 'screen', entrypoint: 'consumer.mjs', export: 'run', alternatives: { wrapper: 'wrapper.mjs', copy: 'copy.mjs', unusedImport: 'decoy.mjs' } }],
+    rules: { owns: ['wording'], consumerOwns: [], allowed: ['wrapping'], extend: 'Extend the owner', forbidden: ['local wording copies'] },
+    requirements: { expected: 'shared' },
+    checks: { entrypoint: 'check.mjs', files: [] },
+  };
+  const save = () => writeFileSync(join(root, 'capability.json'), JSON.stringify(contract));
+  const review = () => recordContractReview(root, 'capability.json', 'Reviewed the shared wording and real consumer checks.');
+  save();
+  return { root, contract, save, review };
+}
+const execute = (root: string) => verifyContract(root, 'capability.json', { allowExecution: true });
+
+it('runs one contract through the strict engine without auxiliary definition files', async () => {
+  const f = fixture();
+  expect((await execute(f.root)).state).toBe('unresolved');
+  f.review();
+  const result = await execute(f.root);
+  expect(result.state).toBe('ready-for-review');
+  expect('qualifications' in result && result.qualifications[0]!.report.cases.map(item => item.conformance.exitCode)).toEqual([0, 0, 1, 1]);
+  expect(inspectContract(f.root, 'capability.json').review.state).toBe('current');
+});
+
+it('rejects a live correct copy with fresh review and restores production source', async () => {
+  const f = fixture();
+  cpSync(join(f.root, 'copy.mjs'), join(f.root, 'consumer.mjs'));
+  const before = readFileSync(join(f.root, 'consumer.mjs'));
+  f.review();
+  expect((await execute(f.root)).state).toBe('violated');
+  expect(readFileSync(join(f.root, 'consumer.mjs'))).toEqual(before);
+});
+
+it('rejects an always-passing ownership checker with fresh review', async () => {
+  const f = fixture();
+  writeFileSync(join(f.root, 'check.mjs'), 'process.exitCode = 0;');
+  f.review();
+  expect((await execute(f.root)).state).toBe('violated');
+});
+
+it('expires reviews after source or requirements change and still rejects disagreement after recording review', async () => {
+  const f = fixture();
+  f.review();
+  f.contract.requirements.expected = 'different';
+  f.save();
+  expect(inspectContract(f.root, 'capability.json').review.state).toBe('stale');
+  expect((await execute(f.root)).state).toBe('unresolved');
+  f.review();
+  expect((await execute(f.root)).state).toBe('violated');
+  f.contract.requirements.expected = 'shared';
+  f.save();
+  f.review();
+  writeFileSync(join(f.root, 'owner.mjs'), 'export const value = () => "broken";');
+  expect(inspectContract(f.root, 'capability.json').review.state).toBe('stale');
+  f.review();
+  expect((await execute(f.root)).state).toBe('violated');
+});
+
+it('refuses execution without authorization and cannot omit required bypass cases', async () => {
+  const f = fixture();
+  await expect(verifyContract(f.root, 'capability.json', { allowExecution: false })).rejects.toThrow('authorization');
+  const broken = JSON.parse(JSON.stringify(f.contract));
+  delete broken.consumers[0].alternatives.unusedImport;
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(broken));
+  expect(() => f.review()).toThrow();
+});
+
+it('treats checker crashes as unresolved rather than a successfully rejected bypass', async () => {
+  const f = fixture();
+  writeFileSync(join(f.root, 'check.mjs'), 'process.exitCode = 2;');
+  f.review();
+  expect((await execute(f.root)).state).toBe('unresolved');
+});
+
+it('binds fixtures and check source to review and fingerprints changes across execution', async () => {
+  const f = fixture();
+  f.review();
+  writeFileSync(join(f.root, 'wrapper.mjs'), readFileSync(join(f.root, 'wrapper.mjs'), 'utf8') + '\n');
+  expect((await execute(f.root)).state).toBe('unresolved');
+  writeFileSync(join(f.root, 'check.mjs'), 'import {appendFileSync} from "node:fs"; appendFileSync("owner.mjs", "\\n");');
+  f.review();
+  expect((await execute(f.root)).state).toBe('unresolved');
+});
+
+it('the published schema describes the actual common contract parser', () => {
+  expect(JSON.parse(readFileSync('schemas/contract.schema.json', 'utf8'))).toEqual(z.toJSONSchema(contractSchema, { io: 'input' }));
+});
+
+it('uses the same contract for optional source mapping and blocks stale maps', async () => {
+  const f = fixture();
+  execFileSync('git', ['init', '-q'], { cwd: f.root });
+  writeFileSync(join(f.root, '.gitignore'), '.cod/\n');
+  const symbol = 'scip-typescript npm demo 1 owner.mjs/value().';
+  writeFileSync(join(f.root, 'indexer.mjs'), `
+import {writeFileSync} from 'node:fs';
+import {pathToFileURL} from 'node:url';
+writeFileSync(process.argv[2], JSON.stringify({
+ metadata:{project_root:pathToFileURL(process.cwd()+'/').href,tool_info:{name:'test-indexer',version:'1'}},
+ documents:[{relative_path:'owner.mjs',occurrences:[{symbol:${JSON.stringify(symbol)},symbol_roles:1,range:[0,13,18]}]}]
+}));
+`);
+  const value = { ...f.contract, mapping: { producers: [{ command: process.execPath, args: ['indexer.mjs', '{output}'] }], symbols: [symbol] } };
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(value));
+  f.review();
+  expect((await execute(f.root)).state).toBe('unresolved');
+  expect((await refreshContractMap(f.root, 'capability.json', { allowExecution: true })).state).toBe('mapped');
+  expect(inspectContract(f.root, 'capability.json').sourceMap.state).toBe('current');
+  expect((await execute(f.root)).state).toBe('ready-for-review');
+  writeFileSync(join(f.root, 'new-source.mjs'), 'export const other = true;');
+  expect(inspectContract(f.root, 'capability.json').sourceMap.state).toBe('stale');
+  expect((await execute(f.root)).state).toBe('unresolved');
+});
+
+it('requires an explicit need and reuse decision and expires review when it changes', () => {
+  const f = fixture();
+  const { decision, ...missing } = f.contract;
+  expect(contractSchema.safeParse(missing).success).toBe(false);
+  expect(contractSchema.safeParse({ ...f.contract, decision: { ...decision, considered: [] } }).success).toBe(false);
+  f.review();
+  f.contract.decision.rationale = 'Extend the owner after reviewing a new requirement.';
+  f.save();
+  expect(inspectContract(f.root, 'capability.json').review.state).toBe('stale');
+});
+
+it('rejects invalid mapping settings before review or cache files exist', async () => {
+  const f = fixture();
+  for (const mapping of [
+    { producers: [{ command: 'node', args: ['indexer.mjs'] }], symbols: [] },
+    { producers: [{ command: 'node', args: ['indexer.mjs', '{output}'] }], symbols: ['local 1'] },
+  ]) {
+    writeFileSync(join(f.root, 'capability.json'), JSON.stringify({ ...f.contract, mapping }));
+    expect(() => inspectContract(f.root, 'capability.json')).toThrow();
+    expect(() => f.review()).toThrow();
+    await expect(execute(f.root)).rejects.toThrow();
+  }
+});

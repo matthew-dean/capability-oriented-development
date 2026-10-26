@@ -42,7 +42,21 @@
     "docs/system-map.md",
     "examples/system",
     "docs/scip-mapping.md",
-    "tools/scip-producer.mjs"
+    "tools/scip-producer.mjs",
+    "docs/start-here.md",
+    "docs/contract-profiles.md",
+    "examples/csharp-library/README.md",
+    "examples/csharp-library/capability.json",
+    "examples/csharp-library/capability.review.json",
+    "examples/csharp-library/src/*.cs",
+    "examples/csharp-library/src/*.csproj",
+    "examples/csharp-library/app/*.cs",
+    "examples/csharp-library/app/*.csproj",
+    "examples/csharp-library/checks/*.cs",
+    "examples/csharp-library/checks/*.csproj",
+    "examples/csharp-library/cases/*.txt",
+    "examples/vue-design-system",
+    "docs/contracts.md"
   ],
   "engines": {
     "node": ">=22.13 <23 || >=24 <25"
@@ -55,7 +69,7 @@
     "lint": "oxlint --deny-warnings .",
     "test": "vitest run --exclude tests/package.test.ts",
     "test:package": "vitest run tests/package.test.ts",
-    "verify:inner": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:native-stack && pnpm test:distribution",
+    "verify:inner": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:native-stack && pnpm test:profiles && pnpm test:distribution",
     "verify:pr": "pnpm verify:inner && pnpm build && pnpm test:package",
     "verify:extended": "pnpm verify:pr",
     "verify:release": "pnpm verify:pr && pnpm pack --dry-run",
@@ -64,15 +78,17 @@
     "discover": "node dist/cli.js discover examples selection",
     "test:mcp": "vitest run tests/mcp.test.ts",
     "pretest": "pnpm build",
-    "test:native-stack": "node --test --test-concurrency=1 examples/native-stack/checks/contract.test.mjs examples/native-stack/checks/bindings.test.mjs",
-    "test:distribution": "python3 -m unittest discover -s tools -p 'test_*.py'"
+    "test:native-stack": "node dist/cli.js verify examples/native-stack capability.json --allow-execution",
+    "test:distribution": "python3 -m unittest discover -s tools -p 'test_*.py'",
+    "test:profiles": "node dist/cli.js verify examples/csharp-library capability.json --allow-execution && node dist/cli.js verify examples/vue-design-system capability.json --allow-execution"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "@types/node": "22.20.1",
     "dependency-cruiser": "18.7.0",
     "oxlint": "1.89.0",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "vue": "3.5.44"
   },
   "private": true,
   "bin": {

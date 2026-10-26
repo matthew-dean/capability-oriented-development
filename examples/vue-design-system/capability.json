@@ -1,0 +1,84 @@
+{
+  "contractVersion": 1,
+  "id": "vue-button",
+  "profile": "vue-design-system",
+  "responsibility": "Settings follows the shared Vue button appearance and busy behavior.",
+  "owner": {
+    "entrypoint": "src/Button.vue",
+    "export": "default",
+    "files": [
+      "src/theme.mjs"
+    ]
+  },
+  "consumers": [
+    {
+      "id": "settings",
+      "entrypoint": "src/Settings.vue",
+      "export": "default",
+      "files": [
+        "src/app.mjs",
+        "index.html"
+      ],
+      "alternatives": {
+        "wrapper": "cases/wrapper.vue",
+        "copy": "cases/copy.vue",
+        "unusedImport": "cases/unused-import.vue",
+        "override": "cases/override.vue"
+      }
+    }
+  ],
+  "rules": {
+    "owns": [
+      "corner radius",
+      "busy state",
+      "activation blocking"
+    ],
+    "consumerOwns": [
+      "label",
+      "page layout",
+      "action"
+    ],
+    "allowed": [
+      "Use busy and activate; wrap the shared component."
+    ],
+    "extend": "Extend Button props and assertions for new shared behavior.",
+    "forbidden": [
+      "Copy Button or override its radius in a view."
+    ]
+  },
+  "requirements": {
+    "states": [
+      {
+        "busy": false,
+        "radius": "10px",
+        "disabled": false,
+        "ariaBusy": null,
+        "status": "Saved"
+      },
+      {
+        "busy": true,
+        "radius": "10px",
+        "disabled": true,
+        "ariaBusy": "true",
+        "status": "Ready"
+      }
+    ]
+  },
+  "checks": {
+    "entrypoint": "checks/contract.mjs",
+    "files": [
+      "checks/observe.mjs"
+    ]
+  },
+  "decision": {
+    "action": "reuse",
+    "need": "Settings needs the shared button appearance and busy behavior.",
+    "considered": [
+      {
+        "candidate": "src/Button.vue",
+        "finding": "Button already owns these rules; Settings supplies its label and handles activation."
+      }
+    ],
+    "rationale": "Reuse the existing owner. A second implementation would duplicate its responsibility."
+  }
+}

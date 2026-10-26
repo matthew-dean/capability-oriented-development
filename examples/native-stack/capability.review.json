@@ -1,0 +1,12 @@
+{
+  "reviewVersion": 2,
+  "id": "shared-button",
+  "definitionDigest": "d4866473a5597cc070b323fb4d7bc9a36c9e4e037b5db16d0f805d6834ee96d1",
+  "contractDigest": "543dc6e9f37da895a548f889f4b9f52d661b70da8fd12f73e0cf66adf4c74378",
+  "implementations": {
+    "owner": "3347f2261e6eae1702bf5a9e9caebf27f42eed8238db7b604a620eb3915ee910",
+    "settings": "75987eccf0df16bb8c36ba343abfc65c05a9c2111ed745e5b992ed83f56e8cff",
+    "team": "23d64f8baeaea19c21eb723880ee4fd21d89b6692b92e6b53aa1b829beeda115"
+  },
+  "rationale": "Reviewed the need and existing owner, responsibility boundaries, real consumer observations, correct-looking bypass cases, and checks for disagreement in both change directions. Reuse avoids a second owner for the same rule; native tests still must pass."
+}

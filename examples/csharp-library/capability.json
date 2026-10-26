@@ -1,0 +1,66 @@
+{
+  "contractVersion": 1,
+  "id": "pricing",
+  "profile": "csharp-library",
+  "responsibility": "Checkout totals follow the shared pricing rule.",
+  "owner": {
+    "entrypoint": "src/Pricing.cs",
+    "export": "Shop.Pricing.Total",
+    "files": [
+      "src/Pricing.csproj"
+    ]
+  },
+  "consumers": [
+    {
+      "id": "checkout",
+      "entrypoint": "src/Checkout.cs",
+      "export": "Shop.Checkout.Total",
+      "files": [
+        "app/App.csproj",
+        "app/Program.cs"
+      ],
+      "alternatives": {
+        "wrapper": "cases/wrapper.cs.txt",
+        "copy": "cases/copy.cs.txt",
+        "unusedImport": "cases/unused-import.cs.txt"
+      }
+    }
+  ],
+  "rules": {
+    "owns": [
+      "discount calculation"
+    ],
+    "consumerOwns": [
+      "which subtotal to price"
+    ],
+    "allowed": [
+      "Call Pricing.Total directly or through a delegating wrapper."
+    ],
+    "extend": "Add shared pricing options to Pricing and its contract checks.",
+    "forbidden": [
+      "Recalculate the discount in Checkout.",
+      "Discard the owner result and return a local formula."
+    ]
+  },
+  "requirements": {
+    "subtotal": 100,
+    "total": 90
+  },
+  "checks": {
+    "entrypoint": "checks/Checks.csproj",
+    "files": [
+      "checks/Program.cs"
+    ]
+  },
+  "decision": {
+    "action": "reuse",
+    "need": "Checkout needs the shared discounted total.",
+    "considered": [
+      {
+        "candidate": "src/Pricing.cs",
+        "finding": "Pricing.Total already owns the calculation. Checkout should use its result."
+      }
+    ],
+    "rationale": "Reuse the existing owner. A second implementation would duplicate its responsibility."
+  }
+}
