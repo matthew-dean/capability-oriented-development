@@ -1,6 +1,6 @@
 # Adopt COD around your existing stack
 
-Start with one responsibility whose consumers and required behavior you can identify. The JS example is executable; the other recipes are integration designs that must be adapted and verified in the adopting application. Tool links below lead directly to their maintained instructions.
+Start with one responsibility whose consumers and required behavior you can identify. The JavaScript, C# and Vue examples are executable through the shared toolkit; the broader integrations below must be adapted and verified in the adopting application. Tool links below lead directly to their maintained instructions.
 
 ## Write the persistent contract first
 

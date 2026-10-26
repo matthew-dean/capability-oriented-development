@@ -15,5 +15,3 @@ Two-way review fingerprints expire after contract or implementation changes. Exp
 ## Delivery and limits
 
 All required project checks still apply, including compilation, integration and reviewed visual baselines. A browser reload, timeout or missing result is unresolved evidence. A successful scoped command does not establish whole-repository conformance, deployment correctness or general agent productivity.
-
-This example is an executable mechanism demonstration. Empirical research records, model comparisons and transcripts are stored outside the repository and package. Adopting COD does not require generating those artifacts.

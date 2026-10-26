@@ -1,5 +1,7 @@
 # Verify two-way change bindings
 
+This is the lower-level binding API reference. Unified contracts derive these bindings automatically; use [inspect, review and verify](contracts.md#inspect-review-verify) for the standard workflow.
+
 A binding connects a reviewed contract/evidence revision to an identified provider or consumer implementation. Contract changes invalidate those bindings. Implementation changes invalidate their contract review. Compatible code may be reverified without source edits; unchanged requirements may be explicitly reaffirmed after a refactor. Current identities alone do not establish behavioral conformance or approve a review.
 
 The CLI reads declared files without executing project code or writing acceptance records:

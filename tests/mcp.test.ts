@@ -10,8 +10,12 @@ it('negotiates MCP, lists read-only tools, and retrieves fresh evidence', async 
   try {
     await Promise.all([server.connect(a), client.connect(b)]);
     expect(client.getServerVersion()?.version).toBe(JSON.parse(readFileSync('package.json', 'utf8')).version);
-    const tools = await client.listTools(); expect(tools.tools).toHaveLength(6); expect(tools.tools.every(t => t.annotations?.readOnlyHint)).toBe(true);
+    const tools = await client.listTools(); expect(tools.tools).toHaveLength(7); expect(tools.tools.every(t => t.annotations?.readOnlyHint)).toBe(true);
     expect((await client.callTool({ name: 'cod_enforce', arguments: { contract: '../package.json' } })).isError).toBe(true);
+    const unified = await client.callTool({ name: 'cod_inspect_contract', arguments: { contract: 'capability.json', project: 'native-stack' } });
+    expect(unified.isError).toBe(false);
+    expect((unified.structuredContent as { id: string }).id).toBe('shared-button');
+    expect((await client.callTool({ name: 'cod_inspect_contract', arguments: { contract: '../package.json' } })).isError).toBe(true);
     const packet=await client.callTool({name:'cod_plan',arguments:{intent:'selection'}}); expect((packet.structuredContent as {candidates:unknown[]}).candidates.length).toBeGreaterThan(0);
     const discovered = await client.callTool({ name: 'cod_discover', arguments: { intent: 'selection' } });
     expect((discovered.structuredContent as { results: unknown[] }).results.length).toBeGreaterThan(0);

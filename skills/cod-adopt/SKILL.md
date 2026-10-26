@@ -16,6 +16,12 @@ Read the [tool selection guide](references/tool-stacks.md) and [COD specificatio
 
 For a requirement change, reconcile owner, consumers, scenarios and qualification fixtures together. Do not weaken checks to accept a duplicate or treat the contract as a one-time plan. No COD CLI, plugin, registry or specific schema is mandatory if the relationships above are maintained and enforced.
 
+## Use one toolkit contract
+
+For a new adoption using this toolkit, use `capability.json` from `docs/contracts.md`. JavaScript, C# and Vue share its sections and the `inspect`, `review`, `verify` sequence. Put the need, inspected existing candidates, chosen action and concrete fit/mismatch in `decision`. Review necessity, consistency and duplication within the capability scope before accepting an addition.
+
+The native checker has behavior, ownership and changes modes. The toolkit derives production overlays and mandatory review bindings from this file; do not author separate runtime, qualification, workflow or binding definitions. `mapping` in the same file optionally configures SCIP, refreshed with `cod refresh-map`. The lower-level commands elsewhere in this skill remain available for older integrations, not extra adoption steps.
+
 ## Keep the first adoption concrete
 
 Follow one request through one real owner and its consumers. For a button appearance change: locate the existing component; express the new appearance in its native executable requirements; implement through its supported boundary; verify behavior and that a shared change reaches each screen; confirm a local copy/override fails the same delivery check. Enforce review after contract or implementation changes without forcing compatible consumers to change source.

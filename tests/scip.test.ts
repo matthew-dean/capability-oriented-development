@@ -15,7 +15,9 @@ it('accepts documented mapping inputs in the published schema without requiring 
   const validate = new Ajv2020({ strict: true }).compile(schema);
   const guide = readFileSync(new URL('../docs/scip-mapping.md', import.meta.url), 'utf8');
   const documented = JSON.parse(guide.match(/```json\n([\s\S]*?)\n```/)![1]!);
-  expect(validate(documented)).toBe(true);
+  const unifiedSchema = JSON.parse(readFileSync(new URL('../schemas/contract.schema.json', import.meta.url), 'utf8'));
+  const validateMapping = new Ajv2020({ strict: true }).compile(unifiedSchema.properties.mapping);
+  expect(validateMapping(documented.mapping)).toBe(true);
   const minimal = { scipMappingVersion: 1, producers: [{ command: 'node', args: ['producer.mjs', '{output}'] }] };
   expect(validate(minimal)).toBe(true);
   expect(scipMappingSchema.parse(minimal)).toEqual({ ...minimal, additionalInputs: [], capabilities: [], producers: [{ ...minimal.producers[0], cwd: '.' }] });

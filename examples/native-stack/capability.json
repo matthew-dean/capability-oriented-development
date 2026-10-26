@@ -1,0 +1,148 @@
+{
+  "contractVersion": 1,
+  "id": "shared-button",
+  "profile": "javascript-library",
+  "responsibility": "Create action buttons whose appearance and interaction rules stay shared across screens.",
+  "owner": {
+    "entrypoint": "src/button.mjs",
+    "export": "createButton",
+    "files": [
+      "src/button.mjs",
+      "src/theme.mjs",
+      "src/styles.css"
+    ]
+  },
+  "consumers": [
+    {
+      "id": "settings",
+      "entrypoint": "src/settings.mjs",
+      "export": "createAction",
+      "examples": {
+        "label": "Save changes",
+        "afterActivation": "Changes saved."
+      },
+      "alternatives": {
+        "wrapper": "variants/settings-composition.mjs",
+        "copy": "variants/settings-independent-copy.mjs",
+        "unusedImport": "variants/settings-dead-owner-decoy.mjs",
+        "override": "variants/settings-local-surface.mjs",
+        "additional": [
+          {
+            "name": "theme-sharing-copy",
+            "source": "variants/settings-theme-sharing-copy.mjs",
+            "followsOwner": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "team",
+      "entrypoint": "src/team.mjs",
+      "export": "createAction",
+      "examples": {
+        "label": "Invite teammate",
+        "afterActivation": "Invitation ready."
+      },
+      "alternatives": {
+        "wrapper": "variants/team-composition.mjs",
+        "copy": "variants/team-independent-copy.mjs",
+        "unusedImport": "variants/team-dead-owner-decoy.mjs",
+        "override": "variants/team-local-surface.mjs",
+        "additional": [
+          {
+            "name": "theme-sharing-copy",
+            "source": "variants/team-theme-sharing-copy.mjs",
+            "followsOwner": false
+          }
+        ]
+      }
+    }
+  ],
+  "rules": {
+    "owns": [
+      "background",
+      "corner radius",
+      "padding",
+      "disabled state",
+      "loading state",
+      "keyboard reachability"
+    ],
+    "consumerOwns": [
+      "label",
+      "action",
+      "page layout",
+      "status messages"
+    ],
+    "allowed": [
+      "Pass disabled, busy and onClick options.",
+      "Wrap createButton while preserving its appearance and interaction rules."
+    ],
+    "extend": "Add shared options to createButton and its contract tests. Keep page-specific actions and layout in the screen.",
+    "forbidden": [
+      "Copy the button implementation.",
+      "Override shared appearance in a screen.",
+      "Import or call the owner while using a local replacement."
+    ]
+  },
+  "requirements": {
+    "appearance": {
+      "background": "rgb(49, 84, 217)",
+      "radius": "10px",
+      "padding": "10px 18px",
+      "type": "button"
+    },
+    "states": {
+      "idle": {
+        "disabled": false,
+        "busy": null,
+        "opacity": "1",
+        "keyboardReachable": true
+      },
+      "disabled": {
+        "disabled": true,
+        "busy": null,
+        "opacity": "0.48",
+        "keyboardReachable": false
+      },
+      "busy": {
+        "disabled": true,
+        "busy": "true",
+        "opacity": "0.48",
+        "keyboardReachable": false
+      }
+    },
+    "status": {
+      "ready": "Changes are up to date.",
+      "busy": "Working\u2026"
+    }
+  },
+  "checks": {
+    "entrypoint": "checks/contract.mjs",
+    "files": [
+      "package.json",
+      "src/app.mjs",
+      "index.html",
+      "serve.mjs",
+      ".dependency-cruiser.cjs",
+      "checks/support.mjs",
+      "checks/observe.mjs",
+      "checks/theme-probe.mjs",
+      "checks/changes.test.mjs",
+      "checks/contract.test.mjs",
+      "checks/behavior.mjs",
+      "checks/conformance.mjs",
+      "checks/walkthrough.mjs"
+    ]
+  },
+  "decision": {
+    "action": "reuse",
+    "need": "Settings and Team need the same button appearance and disabled behavior.",
+    "considered": [
+      {
+        "candidate": "src/button.mjs",
+        "finding": "The shared button owns appearance and interaction; screens retain labels and actions."
+      }
+    ],
+    "rationale": "Reuse the existing owner. A second implementation would duplicate its responsibility."
+  }
+}

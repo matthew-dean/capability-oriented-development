@@ -10,3 +10,7 @@ coverage/
 /examples/study-evidence/
 
 __pycache__/
+
+.cod/
+/examples/csharp-library/**/bin/
+/examples/csharp-library/**/obj/

@@ -21,18 +21,29 @@ export type CodWorkflow = z.input<typeof workflowSchema>;
 
 /** Produces an evidence packet for review. It never approves architectural fit or stale prose. */
 export async function verifyWorkflow(root: string, input: unknown, options: { allowExecution: boolean; timeoutMs?: number }) {
+  return runWorkflow(root, input, options, file => JSON.parse(readFileSync(reference(root, file), 'utf8')));
+}
+
+/** Shared enforcement engine. A unified contract supplies definitions in memory;
+ * legacy integrations load them from files. Both use the same checks below.
+ */
+export async function runWorkflow(
+  root: string,
+  input: unknown,
+  options: { allowExecution: boolean; timeoutMs?: number },
+  read: (file: string, kind: 'runtime' | 'qualification' | 'bindings' | 'review' | 'baseline') => unknown,
+) {
   if (options.allowExecution !== true) throw new Error('Workflow commands require explicit execution authorization');
   const workflow = workflowSchema.parse(input);
-  const read = (file: string): unknown => JSON.parse(readFileSync(reference(root, file), 'utf8'));
-  const contracts = workflow.contracts.map(file => ({ file, definition: runtimeContractSchema.parse(read(file)) }));
-  const qualifications = workflow.qualifications.map(item => ({ ...item, definition: z.union([witnessSchema, variantQualificationSchema]).parse(read(item.file)) }));
+  const contracts = workflow.contracts.map(file => ({ file, definition: runtimeContractSchema.parse(read(file, 'runtime')) }));
+  const qualifications = workflow.qualifications.map(item => ({ ...item, definition: z.union([witnessSchema, variantQualificationSchema]).parse(read(item.file, 'qualification')) }));
   if (new Set(contracts.map(c => c.definition.id)).size !== contracts.length) throw new Error('Duplicate runtime contract IDs');
   const declared = new Set(contracts.map(c => c.definition.id));
   if (qualifications.some(q => q.contracts.some(id => !declared.has(id)))) throw new Error('Qualification refers to an unknown contract');
   const kinds = new Set(contracts.flatMap(c => c.definition.obligations.map(o => o.kind)));
   const gaps = ['behavior', 'ownership', 'evolution'].filter(kind => !kinds.has(kind as 'behavior' | 'ownership' | 'evolution')).map(kind => `Missing ${kind} obligation`);
   if (workflow.requireChangeBindings && !workflow.changeBindings.length) gaps.push('Missing required two-way change bindings');
-  const changeBindings = workflow.changeBindings.map(binding => { const scope=changeBindingSchema.parse(read(binding.definition)); return {...binding,scope,report:verifyChangeBindings(root,scope,read(binding.review))}; });
+  const changeBindings = workflow.changeBindings.map(binding => { const scope=changeBindingSchema.parse(read(binding.definition, 'bindings')); return {...binding,scope,report:verifyChangeBindings(root,scope,read(binding.review, 'review'))}; });
   for (const binding of changeBindings) if (binding.report.state !== 'current') gaps.push(`Stale two-way change binding: ${binding.report.id}`);
   if (workflow.requireChangeBindings) {
     const covered = new Set(changeBindings.flatMap(binding => Object.keys(binding.report.files)));
@@ -63,7 +74,7 @@ export async function verifyWorkflow(root: string, input: unknown, options: { al
   }
   const files = [...new Set([...workflow.contracts, ...qualifications.map(q => q.file), ...contracts.flatMap(c => c.definition.inputs), ...qualifications.flatMap(q => q.definition.inputs), ...changeBindings.flatMap(binding => [binding.definition, binding.review, ...Object.keys(binding.report.files)]), ...(workflow.baseline ? [workflow.baseline] : [])])];
   const before = Object.fromEntries(files.map(file => [file, hash(readFileSync(reference(root, file)))]));
-  const reconciliation = workflow.baseline ? reconcile(parseIndex(read(workflow.baseline)), buildIndex(root)) : null;
+  const reconciliation = workflow.baseline ? reconcile(parseIndex(read(workflow.baseline, 'baseline')), buildIndex(root)) : null;
   if (reconciliation && !reconciliation.ok) gaps.push('Current structural graph is invalid');
   if (gaps.length) return { workflowVersion: 1 as const, id: workflow.id, state: 'unresolved', gaps, decision: workflow.decision, reconciliation, changeBindings, qualifications: [], contracts: [], definitionDigest: hash(JSON.stringify(workflow)), inputs: before, changedInputs: [] };
   for (const q of qualifications) preflightRuntimeContract(root, q.definition.qualificationVersion === 2 ? variantQualificationRuntimeContract(q.definition) : qualificationRuntimeContract(q.definition));

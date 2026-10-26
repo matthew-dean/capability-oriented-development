@@ -7,11 +7,27 @@ description: Implement and reconcile changes using persistent capability ownersh
 
 Deliver the requested behavior through fitting shared responsibilities and keep their executable contracts current. COD may accompany spec-driven development. Respect the task scope, repository conventions and existing authorization; adopting this skill does not authorize publication or unrelated edits.
 
+## Start with the unified contract
+
+When the project uses the toolkit, read `capability.json` and run `cod inspect <root> <contract>` (or MCP `cod_inspect_contract`) before choosing an owner. All supported JavaScript, C# and Vue profiles use that format. It selects actual native execution; do not create separate runtime, qualification, workflow or binding JSON files for a new adoption.
+
+Follow the same sequence: read the promise, inspect the owner and real consumers, use or extend the owner, reconcile expected values and bypass cases, record an explicit review with `cod review --reason`, then run `cod verify --allow-execution` and the normal repository checks. The toolkit derives input bindings and substitutions. The native checker has three modes: behavior, ownership and changes. See bundled `docs/contracts.md` and `docs/start-here.md`.
+
+If mapping is configured in the same contract, finish source/review changes, run `cod refresh-map`, inspect freshness and verify. The cache lives at `.cod/cache/<id>.json`. It is not another authored contract. Do not claim source discovery or complete consumer coverage from an unconfigured or incomplete index.
+
+Explain the work so a nonexpert can follow one concrete promise to its code and assertion. Keep generated hashes out of the explanation. A changed prose sentence alone is not executable coverage. The three runnable examples use the shared toolkit; do not invent an example-only contract runner.
+
+The remaining sections describe underlying principles and older integrations. Their low-level JSON commands apply only to projects already using those APIs; they are not extra steps for a unified contract.
+
 ## Choose the enforcement stack
 
 Read [tool stacks](references/tool-stacks.md) when adopting COD or selecting enforcement tools. Existing native tools can satisfy COD; do not introduce the COD CLI or its JSON formats just to obtain the label. Use the repository's documented verification command and maintained contract format. The CLI procedures below apply only when that toolkit is installed and adopted.
 
 ## Follow one change end to end
+
+For new adoption, use the common contract sections and native profiles in bundled `docs/contract-profiles.md` (or the same path in the COD repository). Give the reader one entry point that identifies responsibility, owner, consumers, rules, executable requirements and checks. Reuse native declarations and tests; do not invent a fresh orchestration format per capability. The `profile` selects the shared native command protocol; the repository still supplies its domain assertions. Record the actual need, existing candidates inspected, chosen action and concrete fit or mismatch in `decision`. Review necessity, consistency and duplication within the capability scope. A nonempty explanation is evidence to review, not proof that the choice was sound.
+
+Make agent-authored output auditable: show what each file is, who maintains it, what reads it, and which assertion rejects a plausible mistake. Keep generated maps/review identities separate from authored requirements. A prose promise with no matching assertion remains unenforced. Use the guided button example to teach the sequence, not to impose its UI-specific fields on another domain.
 
 Identify the requested change, the existing responsibility owner and actual consumers. Find the executable requirements and the required command that checks them. Implement through the owner's supported boundary; run behavior and ownership/evolution checks; reconcile the contract and current review in both change directions. For a shared button, a real shared appearance change must reach the screens, while a local copy or override must fail.
 
@@ -41,7 +57,7 @@ Before selecting checks, connect each changed requirement to its responsible own
 
 ## Restrain contract authoring
 
-Apply the [contract authoring contract](https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/specification.md#contract-authoring-contract) before generating or changing a contract; it is also bundled in `docs/specification.md`. Trace obligations to the actual request, established required behavior or an approved design. Keep hypothetical experiment requirements isolated from product changes.
+Apply the [contract authoring contract](https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/specification.md#contract-authoring-contract) before generating or changing a contract; it is also bundled in `docs/specification.md`. Trace obligations to the actual request, established required behavior or an approved design. Do not turn example requirements into product scope.
 
 Reference existing types, schemas and tests; add only missing responsibility relationships. Reuse native verification before adding a checker, and implement only the uncovered observation. Do not recreate a visual gate or test framework to satisfy a new contract. Prefer a fitting owner or supported option; extend an owner only for policy it owns. Share a stable responsibility for real consumers, rather than building a general layer for an imagined future use. Keep differing consumer rules and simple local work local.
 
@@ -49,7 +65,7 @@ Review the necessary delta against a simpler alternative that preserves the requ
 
 Use the specification's [concrete review questions](https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/specification.md#review-reuse-and-restraint-against-concrete-alternatives) in the ordinary change review: identify inspected source, the smallest adequate alternative, demonstrated shared consumers, legitimate local differences, and the later change that should propagate. Keep one-off requirements local when they do not share the rule. Explain a justified exception at the affected obligation rather than disabling all checks. These are evidence-based heuristic decisions, not approvals produced by filling in a form.
 
-Research runs, transcripts, evaluator output, comparison datasets and reset patches stay in a private directory outside Git. They are not ordinary review artifacts. Keep reusable product checks and counterexample fixtures in source; write transient execution output to ignored paths or CI artifacts.
+Keep reusable product checks and counterexample fixtures in source; write transient execution output to ignored paths or CI artifacts.
 
 ## Establish trustworthy checks
 

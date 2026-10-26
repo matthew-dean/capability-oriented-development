@@ -43,7 +43,7 @@ describe('published package contract', () => {
         [
           '--input-type=module',
           '--eval',
-          "import('capability-oriented-development').then(({inspectChangeBindings, verifyChangeBindings, qualifyVariants, verifyPropagation, inspectSystemMap}) => { if(typeof inspectSystemMap !== 'function' || typeof inspectChangeBindings !== 'function' || typeof verifyChangeBindings !== 'function' || typeof qualifyVariants !== 'function' || typeof verifyPropagation !== 'function') throw Error('Missing public change-binding API'); process.stdout.write('ok'); })",
+          "import('capability-oriented-development').then(({inspectChangeBindings, verifyChangeBindings, qualifyVariants, verifyPropagation, inspectSystemMap, inspectContract, verifyContract, recordContractReview, refreshContractMap}) => { if([inspectContract, verifyContract, recordContractReview, refreshContractMap].some(api => typeof api !== 'function') || typeof inspectSystemMap !== 'function' || typeof inspectChangeBindings !== 'function' || typeof verifyChangeBindings !== 'function' || typeof qualifyVariants !== 'function' || typeof verifyPropagation !== 'function') throw Error('Missing public change-binding API'); process.stdout.write('ok'); })",
         ],
         { cwd: workspace, encoding: 'utf8' },
       ),
@@ -77,11 +77,15 @@ describe('published package contract', () => {
     cpSync(join(packageRoot, 'examples', 'native-stack'), nativeDemo, { recursive: true });
     expect(existsSync(join(nativeDemo, 'npm-shrinkwrap.json'))).toBe(true);
     execFileSync('npm', ['ci', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: nativeDemo, shell: useCommandShell });
-    execFileSync('npm', ['run', 'verify'], { cwd: nativeDemo, shell: useCommandShell });
-    const uiReport = JSON.parse(execFileSync(process.execPath, [join(packageRoot, 'dist/cli.js'), 'workflow', nativeDemo, 'checks/workflow.json', '--allow-execution'], { cwd: workspace, encoding: 'utf8' }));
-    expect(uiReport.state).toBe('ready-for-review');
-    expect(uiReport.qualifications[0].report.cases.map((c: { conformance: { exitCode: number } }) => c.conformance.exitCode)).toEqual([0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1]);
-
+    const nativeReport = execFileSync('npm', ['run', 'verify'], { cwd: nativeDemo, shell: useCommandShell, encoding: 'utf8' });
+    expect(nativeReport).toContain('shared-button: ready-for-review');
+    const inspected = JSON.parse(execFileSync(process.execPath, [join(packageRoot, 'dist/cli.js'), 'inspect', nativeDemo, 'capability.json', '--json'], { encoding: 'utf8' }));
+    expect(inspected.decision.action).toBe('reuse');
+    expect(inspected.review.state).toBe('current');
+    for (const profile of ['csharp-library', 'vue-design-system']) {
+      expect(existsSync(join(packageRoot, 'examples', profile, 'capability.json'))).toBe(true);
+    }
+    expect(existsSync(join(packageRoot, 'examples/csharp-library/checks/bin'))).toBe(false);
 
   }, 180_000);
 });

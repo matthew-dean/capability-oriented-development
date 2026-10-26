@@ -1,0 +1,10 @@
+namespace Shop;
+
+public static class Checkout
+{
+    public static decimal Total(decimal subtotal)
+    {
+        _ = Pricing.Total(subtotal); // Calling the owner is not enough.
+        return subtotal * 0.9m;      // Its answer was discarded.
+    }
+}
