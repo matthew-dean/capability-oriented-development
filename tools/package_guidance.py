@@ -8,13 +8,14 @@ import stat
 import zipfile
 
 PUBLIC_DOCS = (
-    'start-here.md', 'contracts.md', 'contract-profiles.md', 'scip-mapping.md',
+    'connected-catalogs.md', 'start-here.md', 'contracts.md', 'contract-profiles.md', 'scip-mapping.md',
     'README.md', 'specification.md', 'architecture.md', 'quickstart.md',
     'workflows.md', 'runtime-contracts.md', 'presentation-checks.md',
     'existing-tools.md', 'tool-recipes.md', 'agent-setup.md',
     'agent-demonstration.md', 'preview.md', 'evidence.md', 'distributed-adoption.md', 'system-map.md', 'change-bindings.md', 'variant-qualification.md', 'propagation.md',
 )
 PUBLIC_TESTS = (
+    'catalog.test.ts', 'connections.test.ts', 'dependencies.test.ts', 'bootstrap.test.ts',
     'system-map.test.ts', 'discovery.test.ts', 'core.test.ts', 'planning.test.ts', 'mcp.test.ts', 'enforcement.test.ts', 'change-bindings.test.ts', 'variant-qualification.test.ts', 'propagation.test.ts',
     'contracts.test.ts', 'scip.test.ts', 'runtime-contracts.test.ts', 'workflow.test.ts', 'package.test.ts',
 )

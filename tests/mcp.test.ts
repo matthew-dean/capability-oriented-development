@@ -10,8 +10,10 @@ it('negotiates MCP, lists read-only tools, and retrieves fresh evidence', async 
   try {
     await Promise.all([server.connect(a), client.connect(b)]);
     expect(client.getServerVersion()?.version).toBe(JSON.parse(readFileSync('package.json', 'utf8')).version);
-    const tools = await client.listTools(); expect(tools.tools).toHaveLength(7); expect(tools.tools.every(t => t.annotations?.readOnlyHint)).toBe(true);
+    const tools = await client.listTools(); expect(tools.tools).toHaveLength(9); expect(tools.tools.every(t => t.annotations?.readOnlyHint)).toBe(true);
     expect((await client.callTool({ name: 'cod_enforce', arguments: { contract: '../package.json' } })).isError).toBe(true);
+    expect((await client.callTool({ name: 'cod_catalog', arguments: { project: 'native-stack', directory: '.' } })).isError).toBe(false);
+    expect((await client.callTool({ name: 'cod_connections', arguments: { project: '../' } })).isError).toBe(true);
     const unified = await client.callTool({ name: 'cod_inspect_contract', arguments: { contract: 'capability.json', project: 'native-stack' } });
     expect(unified.isError).toBe(false);
     expect((unified.structuredContent as { id: string }).id).toBe('shared-button');

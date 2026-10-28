@@ -14,7 +14,7 @@ The repository includes two skills:
 For Codex, copy them into your application repository:
 
 ```sh
-cod_source=/absolute/path/to/capability-oriented-development
+cod_source=/absolute/path/to/cod-kit
 mkdir -p .agents/skills
 cp -R "$cod_source/skills/cod-adopt" .agents/skills/
 cp -R "$cod_source/skills/cod-workflow" .agents/skills/
@@ -25,7 +25,7 @@ Review existing copies before updating them. Keep each skill's `references` dire
 For Claude Code, load the supplied plugin from your application directory:
 
 ```sh
-claude --plugin-dir /absolute/path/to/capability-oriented-development
+claude --plugin-dir /absolute/path/to/cod-kit
 ```
 
 Choose one installation route. The plugin supplies instructions; it does not install your project's build or test dependencies.

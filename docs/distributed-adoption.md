@@ -2,7 +2,7 @@
 
 Keep each capability's contract with its authoritative owner. Consumers reference an identified revision and prove that their actual execution respects it. A repository boundary does not justify copying the policy or creating a competing specification.
 
-Start with one real flow across repositories. Preserve existing specifications, native tests, architectural rules and migration decisions. Build an evidence map before introducing a registry or changing architecture. [Inspect a supplied map](system-map.md) with the toolkit, or maintain equivalent records in your existing catalog.
+Start with one real flow across repositories. Preserve existing specifications, native tests, architectural rules and migration decisions. Derive a local catalog from standard contracts and [connect provider catalogs](connected-catalogs.md) through the existing release and source metadata. No second handwritten capability inventory is required. The older [supplied-map inspector](system-map.md) remains useful for explicitly describing runtime and migration evidence beyond the source catalogs.
 
 ## 1. Map authority, implementation and runtime separately
 
@@ -66,7 +66,7 @@ Compatible changes can retain consumer source when current evidence establishes 
 
 Integrate the chosen commands into existing required CI checks. Bind verification receipts to relevant source, contract, tool and environment/version inputs. A downstream trigger alone is not a gate: the provider release must wait for the required results. Report absent, stale or unavailable results as unresolved. Do not use a link to yesterday's successful build as approval for today's revision.
 
-The COD toolkit supplies local runtime/qualification/two-way primitives. It does **not** currently implement artifact publishing/retrieval, cross-repository CI dispatch, release matrices, deployment discovery or organizational approval. Use existing delivery infrastructure for those functions and verify its wiring explicitly.
+The COD toolkit supplies local runtime/qualification/two-way primitives. It also supplies metadata-only [Git catalog retrieval](connected-catalogs.md), including selected revisions and latest discovery. It does **not** implement package publishing/retrieval, cross-repository CI dispatch, release matrices, deployment discovery or organizational approval. Use existing delivery infrastructure for those functions and verify its wiring explicitly.
 
 ## 6. Handle third-party authority honestly
 

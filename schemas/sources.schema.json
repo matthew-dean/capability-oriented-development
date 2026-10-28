@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "sourcesVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "minLength": 1
+          },
+          "discoveryRef": {
+            "default": "HEAD",
+            "type": "string",
+            "minLength": 1
+          },
+          "directory": {
+            "default": "capabilities",
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "repository"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "sourcesVersion",
+    "repositories"
+  ],
+  "additionalProperties": false
+}
