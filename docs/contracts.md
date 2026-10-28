@@ -218,3 +218,7 @@ For new adoption, use the unified format. For an existing integration:
 - Record a fresh review with `cod review`, and change required delivery to `cod verify`.
 
 The old low-level commands/APIs remain for existing integrations. They share the same enforcement engine; they are not extra files required by the new format.
+
+## Connected provider catalogs
+
+A dependency can read its version from a native NuGet PackageReference or JSON pointer. `revision` accepts an immutable Git commit or `{ "format": "nuget" }` to read matching restored package provenance. See [connected catalogs](connected-catalogs.md) for the complete setup, freshness model and limits. The version source file is automatically bound into the contract review inputs. Resolving provider metadata does not establish remote conformance.

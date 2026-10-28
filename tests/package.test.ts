@@ -43,7 +43,7 @@ describe('published package contract', () => {
         [
           '--input-type=module',
           '--eval',
-          "import('capability-oriented-development').then(({inspectChangeBindings, verifyChangeBindings, qualifyVariants, verifyPropagation, inspectSystemMap, inspectContract, verifyContract, recordContractReview, refreshContractMap}) => { if([inspectContract, verifyContract, recordContractReview, refreshContractMap].some(api => typeof api !== 'function') || typeof inspectSystemMap !== 'function' || typeof inspectChangeBindings !== 'function' || typeof verifyChangeBindings !== 'function' || typeof qualifyVariants !== 'function' || typeof verifyPropagation !== 'function') throw Error('Missing public change-binding API'); process.stdout.write('ok'); })",
+          "import('capability-oriented-development').then(({inspectChangeBindings, verifyChangeBindings, qualifyVariants, verifyPropagation, inspectSystemMap, inspectContract, verifyContract, recordContractReview, refreshContractMap, syncConnections, inspectConnections, inspectCatalog}) => { if([inspectContract, verifyContract, recordContractReview, refreshContractMap, syncConnections, inspectConnections, inspectCatalog].some(api => typeof api !== 'function') || typeof inspectSystemMap !== 'function' || typeof inspectChangeBindings !== 'function' || typeof verifyChangeBindings !== 'function' || typeof qualifyVariants !== 'function' || typeof verifyPropagation !== 'function') throw Error('Missing public change-binding API'); process.stdout.write('ok'); })",
         ],
         { cwd: workspace, encoding: 'utf8' },
       ),

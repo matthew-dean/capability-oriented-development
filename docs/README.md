@@ -33,3 +33,5 @@ For custom integrations with the underlying toolkit APIs:
 - [System inventory](system-map.md)
 
 The unified contract uses these mechanisms through the standard commands; you do not need to configure them separately.
+
+- [Connected catalogs](connected-catalogs.md): retrieve provider contracts, distinguish selected versions from latest discovery, and inspect affected consumers.

@@ -5,6 +5,7 @@ import { hash, reference } from './filesystem.js';
 import { inspectChangeBindings, verifyChangeBindings } from './change-bindings.js';
 import { inspectScipMap, refreshScipMap, scipMappingSchema } from './scip.js';
 import { runWorkflow } from './workflow.js';
+import { dependencySchema, dependencyVersion } from './dependencies.js';
 import { sourceReplacementsSchema, type VariantQualification } from './variant-qualification.js';
 
 const text = z.string().trim().min(1);
@@ -53,7 +54,7 @@ export const contractSchema = z.object({
     extend: text,
     forbidden: z.array(text).min(1),
   }).strict(),
-  dependencies: z.array(z.object({ id: text, repository: text, contract: text, version: text }).strict()).default([]),
+  dependencies: z.array(dependencySchema).default([]),
   requirements: z.record(z.string(), z.unknown()).refine(value => Object.keys(value).length > 0, 'Describe the expected results'),
   checks: z.object({ entrypoint: text, files: paths }).strict(),
   mapping: z.object({
@@ -85,6 +86,18 @@ export function profileCommand(profile: z.infer<typeof contractSchema>['profile'
     : { command: process.execPath, args: [checker, mode, contract], cwd: '.' };
 }
 
+/** Shared input inventory for local review and remote source maps. */
+export function contractFiles(contract: z.output<typeof contractSchema>, file: string) {
+  const ownerFiles = [...new Set([contract.owner.entrypoint, ...contract.owner.files])];
+  const consumerFiles = contract.consumers.flatMap(item => [item.entrypoint, ...item.files]);
+  const checkerFiles = [...new Set([contract.checks.entrypoint, ...contract.checks.files, ...contract.dependencies.flatMap(item => typeof item.version === 'string' ? [] : [item.version.file])])];
+  const fixtureFiles = contract.consumers.flatMap(item => [item.alternatives.wrapper, item.alternatives.copy, item.alternatives.unusedImport,
+    ...(item.alternatives.override ? [item.alternatives.override] : []), ...item.alternatives.additional.map(extra => extra.source)]
+    .filter((source): source is string => typeof source === 'string'));
+  const inputs = [...new Set([file, ...ownerFiles, ...consumerFiles, ...checkerFiles, ...fixtureFiles])];
+  return { ownerFiles, consumerFiles, checkerFiles, fixtureFiles, inputs };
+}
+
 function loadContract(rootPath: string, file: string) {
   const root = realpathSync(rootPath);
   const contractPath = reference(root, file);
@@ -92,9 +105,7 @@ function loadContract(rootPath: string, file: string) {
   const contract = contractSchema.parse(JSON.parse(contractSource));
   if (!file.endsWith('.json')) throw Error('The contract must have a .json filename');
   const reviewFile = file.replace(/\.json$/, '') + '.review.json';
-  const ownerFiles = [...new Set([contract.owner.entrypoint, ...contract.owner.files])];
-  const consumerFiles = contract.consumers.flatMap(item => [item.entrypoint, ...item.files]);
-  const checkerFiles = [...new Set([contract.checks.entrypoint, ...contract.checks.files])];
+  const { ownerFiles, checkerFiles, fixtureFiles, inputs } = contractFiles(contract, file);
   const cases: VariantQualification['cases'] = [
     { id: 'original', role: 'delegation', overlays: [] },
     ...contract.consumers.flatMap(consumer => {
@@ -114,8 +125,6 @@ function loadContract(rootPath: string, file: string) {
       }));
     }),
   ];
-  const fixtureFiles = cases.flatMap(item => item.overlays.flatMap(overlay => overlay.source === undefined ? [] : [overlay.source]));
-  const inputs = [...new Set([file, ...ownerFiles, ...consumerFiles, ...checkerFiles, ...fixtureFiles])];
   for (const path of inputs) reference(root, path);
   const binding = {
     bindingVersion: 1, id: contract.id,
@@ -153,7 +162,10 @@ export function inspectContract(root: string, file: string) {
   return {
     id: contract.id, profile: contract.profile, responsibility: contract.responsibility,
     owner: contract.owner, consumers: contract.consumers.map(({ id, entrypoint, export: symbol }) => ({ id, entrypoint, export: symbol })),
-    decision: contract.decision, rules: contract.rules, dependencies: contract.dependencies, requirements: contract.requirements,
+    decision: contract.decision, rules: contract.rules, dependencies: contract.dependencies.map(dependency => {
+      try { return { ...dependency, resolvedVersion: dependencyVersion(dependency.version, path => readFileSync(reference(loaded.root, path), 'utf8')) }; }
+      catch (error) { return { ...dependency, resolvedVersion: null, versionGap: String(error) }; }
+    }), requirements: contract.requirements,
     checks: ['behavior', 'ownership', 'changes'].map(mode => ({ mode, ...profileCommand(contract.profile, contract.checks.entrypoint, file, mode) })),
     counterexamples: loaded.qualification.cases.map(item => ({ name: item.id, expected: ['independent-copy', 'dead-owner-decoy', 'policy-override'].includes(item.role) ? 'reject ownership; preserve behavior' : 'accept', replacements: item.overlays })),
     review: { file: reviewFile, state: review?.state ?? 'missing', findings: review?.findings ?? [] },

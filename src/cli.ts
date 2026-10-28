@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { inspectConnections, syncConnections } from './connections.js';
 import { inspectCatalog, verifyCatalog } from './catalog.js';
 import { inspectContract, recordContractReview, verifyContract, refreshContractMap } from './contracts.js';
 import { refreshScipMap, inspectScipMap } from './scip.js';
@@ -24,7 +25,24 @@ import { inspectChangeBindings, verifyChangeBindings } from './change-bindings.j
 export async function runCli(args: string[]): Promise<number> {
   const [command, root = '.', ...rest] = args;
   try {
-    if (command === 'catalog' || command === 'verify-catalog') {
+    if (command === 'sync' || command === 'connections') {
+      const flags = rest.filter(value => value.startsWith('--'));
+      const values = rest.filter(value => !value.startsWith('--'));
+      const allowed = command === 'sync' ? ['--json', '--offline', '--report-only'] : ['--json'];
+      if (values.length > 1 || new Set(flags).size !== flags.length || flags.some(flag => !allowed.includes(flag))) throw Error('Usage: cod sync <root> [sources.json] [--offline] [--report-only] [--json] | connections <root> [sources.json] [--json]');
+      const source = values[0] ?? 'capabilities/sources.json';
+      const report = command === 'sync' ? syncConnections(root, source, { offline: flags.includes('--offline') }) : inspectConnections(root, source);
+      if (flags.includes('--json')) console.log(JSON.stringify(report, null, 2));
+      else {
+        console.log(`Connected catalogs: ${report.state}; ${report.freshness}; last sync ${report.syncedAt || 'never'}`);
+        for (const edge of report.edges) console.log(`  ${edge.selection}: ${edge.capability}@${edge.version || '?'} → ${edge.revision ?? 'unresolved'} (${edge.state})`);
+        for (const update of report.updates) console.log(`  Newer ${update.capability}: inspect affected consumers ${update.affectedConsumers.join(', ')}; no automatic upgrade`);
+        for (const gap of report.gaps) console.log(`  ${gap}`);
+        console.log('Metadata only; conformance not evaluated. Use --json for contracts, file maps and growth guidance.');
+      }
+      return flags.includes('--report-only') || report.state === 'current' ? 0 : 2;
+    }
+    if (command === 'catalog'  || command === 'verify-catalog') {
       const flags = rest.filter(value => value.startsWith('--'));
       const values = rest.filter(value => !value.startsWith('--'));
       const allowed = command === 'catalog' ? ['--json', '--check-reviews'] : ['--json', '--allow-execution'];
@@ -43,7 +61,7 @@ export async function runCli(args: string[]): Promise<number> {
             console.log(`  Owner: ${capability.owner.entrypoint} → ${capability.owner.export}`);
             for (const consumer of capability.consumers) console.log(`  Consumer: ${consumer.id} → ${consumer.entrypoint}`);
             console.log(`  Extend: ${capability.rules.extend}`);
-            for (const dependency of capability.dependencies) console.log(`  External: ${dependency.id} → ${dependency.repository} → ${dependency.contract}@${dependency.version} (declared)`);
+            for (const dependency of capability.dependencies) console.log(`  External: ${dependency.id} → ${dependency.repository} → ${dependency.contract}@${dependency.resolvedVersion ?? "unresolved"} (declared)`);
             console.log(`  Review: ${capability.review.state}; source map: ${capability.sourceMap.state}`);
           }
           for (const gap of report.gaps) console.log(`  ${gap}`);

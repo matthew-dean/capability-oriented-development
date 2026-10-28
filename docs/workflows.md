@@ -52,3 +52,7 @@ Use [distributed adoption](distributed-adoption.md) to name the authoritative co
 ## Existing low-level integrations
 
 The [runtime](runtime-contracts.md), [production-variant](variant-qualification.md), [propagation](propagation.md) and [change-binding](change-bindings.md) APIs remain available. They use the same underlying engine. Follow [migration](contracts.md#moving-from-the-older-formats) to replace separately maintained definitions with the unified file.
+
+## Work across repositories
+
+Use [connected catalogs](connected-catalogs.md) to retrieve current discovery metadata while preserving exact selected provider revisions. Read the same owners, growth rules and native checks across the graph; keep missing upstream coverage visible. A refreshed map guides verification and reuse; it does not replace either.

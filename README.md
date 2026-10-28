@@ -30,6 +30,10 @@ A passing result covers the declared assertions. Review still decides whether th
 
 All three use the same schema, commands, review gate and production-source substitution engine. See [profiles](docs/contract-profiles.md) and the [contract reference](docs/contracts.md).
 
+## Find capabilities across repositories
+
+`cod catalog <root>` derives a file and ownership map from standard contracts. `cod sync <root>` retrieves connected provider catalogs through Git; `cod connections <root>` shows the selected versions, newer candidates, missing evidence and affected consumers. Retrieval never executes provider code or upgrades packages. See [setup and workflow](docs/connected-catalogs.md).
+
 ## Build and run
 
 Use Node 22.13+ on the 22 line or Node 24, pnpm through Corepack, Python 3.10+, and the .NET 10 SDK for the C# example:

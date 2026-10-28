@@ -144,3 +144,7 @@ For Vue/Nuxt, explicitly check component scripts, templates, auto-imports and ge
 ## Older mapper integrations
 
 Existing integrations may keep a separate `scipMappingVersion: 1` producer definition with `capabilities: [{id, contract, symbols}]`, using `cod refresh-scip <root> <definition> <ignored-snapshot> --allow-execution`. This lower-level API remains supported. It is not an additional file required by the unified contract.
+
+### Prepare generated inputs before capturing the map
+
+Run the normal native generation/preparation step before refreshing a map that covers generated declarations. During qualification, keep native compilation and assertions active, but use the compiler's non-generating check where available. For example, a framework's preparation command may rewrite generated type declarations while its underlying type checker can validate the current production variant without rewriting them. Do not recapture maps or accept reviews inside a source substitution merely to hide changed generated inputs. Restore variants exactly, then require the final map to remain current; unsupported generation-dependent cases stay unresolved.
