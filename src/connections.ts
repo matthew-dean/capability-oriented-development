@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
 import { z } from 'zod';
@@ -108,7 +108,9 @@ export function syncConnections(rootPath: string, sourceFile = 'capabilities/sou
 function retrieveConnections(rootPath: string, sourceFile: string): ConnectionReport {
   const config = configuration(rootPath, sourceFile);
   const { root } = config;
-  const old = inspectConnections(root, sourceFile);
+  let cachedCatalogs: Catalog[] = [];
+  try { cachedCatalogs = inspectConnections(root, sourceFile).catalogs; }
+  catch { /* A derived snapshot can be rebuilt; local configuration was validated above. */ }
   const configured = new Map(config.sources.repositories.map(item => [item.repository, item]));
   const catalogs = new Map<string, Catalog>();
   const retrieval = new Map<string, Catalog | Error>();
@@ -200,7 +202,7 @@ function retrieveConnections(rootPath: string, sourceFile: string): ConnectionRe
   }
   // Preserve previously retrieved metadata after failed refresh, explicitly as
   // cached information. Failed edges remain unresolved, never resolved by fallback.
-  for (const catalog of old.catalogs) if (edges.some(edge => edge.repository === catalog.repository && edge.state === 'unresolved') && !catalogs.has(`${catalog.repository}\0${catalog.revision}`)) catalogs.set(`${catalog.repository}\0${catalog.revision}`, { ...catalog, freshness: 'cached' });
+  for (const catalog of cachedCatalogs) if (edges.some(edge => edge.repository === catalog.repository && edge.state === 'unresolved') && !catalogs.has(`${catalog.repository}\0${catalog.revision}`)) catalogs.set(`${catalog.repository}\0${catalog.revision}`, { ...catalog, freshness: 'cached' });
   function rootsFor(edge: Edge): string[] {
     const roots = new Set<string>(), seen = new Set<string>(), queue = [edge.from];
     for (let i = 0; i < queue.length; i++) {
@@ -234,7 +236,8 @@ function retrieveConnections(rootPath: string, sourceFile: string): ConnectionRe
   const destination = join(cacheDirectory(root, '.cod/cache'), 'connections.json');
   if (existsSync(destination) && (lstatSync(destination).isSymbolicLink() || lstatSync(destination).nlink > 1)) throw Error('Connection snapshot cannot be a link');
   const temporary = destination + '.tmp';
-  if (existsSync(temporary)) throw Error('Connection snapshot is being written or temporary file needs cleanup');
+  try { unlinkSync(temporary); }
+  catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
   writeFileSync(temporary, JSON.stringify(report, null, 2) + '\n', { flag: 'wx' }); renameSync(temporary, destination);
   return report;
 }

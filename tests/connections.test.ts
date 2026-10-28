@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -192,4 +192,29 @@ it('refuses an overlapping refresh before touching shared Git state and releases
   rmSync(lock);
   expect(syncConnections(c.root).state).toBe('current');
   expect(existsSync(lock)).toBe(false);
+});
+
+it('rebuilds damaged or differently scoped snapshots without manual cache deletion', () => {
+  const p = provider(); const c = consumer(p); syncConnections(c.root);
+  const snapshot = join(c.root, '.cod/cache/connections.json');
+  writeFileSync(snapshot, '{unfinished');
+  expect(() => inspectConnections(c.root)).toThrow();
+  expect(syncConnections(c.root).state).toBe('current');
+  const report = JSON.parse(readFileSync(snapshot, 'utf8')); report.connectionsVersion = 999; writeFileSync(snapshot, JSON.stringify(report));
+  expect(syncConnections(c.root).state).toBe('current');
+  writeFileSync(join(c.root, 'capabilities/alternate-sources.json'), JSON.stringify(c.sources));
+  expect(syncConnections(c.root, 'capabilities/alternate-sources.json').source).toBe('capabilities/alternate-sources.json');
+  writeFileSync(join(c.root, 'capabilities/alternate-sources.json'), '{invalid');
+  expect(() => syncConnections(c.root, 'capabilities/alternate-sources.json')).toThrow();
+});
+
+it('clears an interrupted temporary snapshot under the exclusive lock without following links', () => {
+  const p = provider(); const c = consumer(p); syncConnections(c.root);
+  const temporary = join(c.root, '.cod/cache/connections.json.tmp'); writeFileSync(temporary, '{unfinished');
+  expect(syncConnections(c.root).state).toBe('current'); expect(existsSync(temporary)).toBe(false);
+  const target = join(p.root, 'must-not-change.txt'); writeFileSync(target, 'unchanged');
+  symlinkSync(target, temporary);
+  expect(syncConnections(c.root).state).toBe('current');
+  expect(readFileSync(target, 'utf8')).toBe('unchanged');
+  expect(existsSync(temporary)).toBe(false);
 });
