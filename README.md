@@ -1,4 +1,4 @@
-# Capability-Oriented Development
+# COD-Kit - the home of Capability Oriented Development
 
 **One rule. One place to change it.**
 
