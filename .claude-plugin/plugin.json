@@ -2,5 +2,5 @@
   "name": "cod",
   "description": "Adopt and maintain capability contracts using existing tools and qualified native checks.",
   "author": {"name": "matthew-dean"},
-  "homepage": "https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/agent-setup.md"
+  "homepage": "https://github.com/matthew-dean/cod-kit/blob/main/docs/agent-setup.md"
 }

@@ -4,7 +4,7 @@ In the installed plugin or source distribution, prefer the [local configuration 
 
 COD does not require the COD CLI. Follow the adopting repository's capability contracts and verification commands first. Reuse installed tools before introducing dependencies.
 
-Read the [qualifying stacks guide](https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/existing-tools.md) for mappings and the [adoption recipes](https://github.com/matthew-dean/capability-oriented-development/blob/main/docs/tool-recipes.md) for procedures. These links currently require access to the private repository. The plugin/source checkout also includes those files under `docs/`.
+Read the [qualifying stacks guide](https://github.com/matthew-dean/cod-kit/blob/main/docs/existing-tools.md) for mappings and the [adoption recipes](https://github.com/matthew-dean/cod-kit/blob/main/docs/tool-recipes.md) for procedures. The hosted guides are public. The plugin/source checkout also includes those files under `docs/`.
 
 | Application boundary | Existing tools | Additional COD work |
 |---|---|---|
