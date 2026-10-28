@@ -35,3 +35,5 @@ export type { ScipMapping, ScipSnapshot } from './scip.js';
 
 export { contractSchema, inspectContract, recordContractReview, verifyContract, refreshContractMap, profileCommand } from './contracts.js';
 export type { CapabilityContract } from './contracts.js';
+
+export { inspectCatalog, verifyCatalog } from './catalog.js';

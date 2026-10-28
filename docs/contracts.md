@@ -19,8 +19,9 @@ The toolkit derives its execution, source substitutions and review bindings in m
 | `requirements` | Expected domain values read by the native checks |
 | `checks` | One native checker `entrypoint` and its supporting `files` |
 | `mapping` | Optional SCIP producers and exact emitted owner symbols; see below |
+| `dependencies` | Optional external `{id, repository, contract, version}` references; declarations only |
 
-All paths are relative to the root supplied to the command, not to the contract's directory. Required files must exist inside that root. Unknown fields are rejected. `owner.files`, consumer `files`, consumer `examples` and `alternatives.additional` default to empty values when omitted. Required fields cannot be null. Empty requirements are rejected.
+All paths are relative to the root supplied to the command, not to the contract's directory. Required files must exist inside that root. Unknown fields are rejected. `owner.files`, consumer `files`, consumer `examples`, `alternatives.additional` and `dependencies` default to empty values when omitted. Required fields cannot be null. Empty requirements are rejected.
 
 `export` identifies the API for readers. The native compiler and checker must exercise that API; the toolkit does not claim arbitrary-language symbol resolution from this string.
 
@@ -66,7 +67,22 @@ A consumer names a real production entrypoint and the files that implement it. I
 
 The original and wrapper must pass behavior and ownership. The copy and unused-import/discarded-result case must pass behavior and fail ownership. Vue requires an `override` case too; other profiles may supply one. `additional` accepts `{name, source, followsOwner}` cases for supported alternatives or other bypasses, such as a component copy that shares theme tokens.
 
-The toolkit replaces the actual consumer entrypoint, runs the same check commands, and restores exact source bytes in `finally`. Fixture labels never become arguments to the checker. The existing production-variant engine rejects aliases that could overwrite fixtures or checker inputs. It currently accepts up to sixteen cases per contract, including the original case; a larger declaration currently needs a runner change. Do not omit consumers or split one responsibility merely to fit that limit.
+An alternative can instead contain a compact transformation of that consumer's current source:
+
+```json
+{
+  "wrapper": {
+    "replace": [
+      { "from": "return Pricing.Total(subtotal);", "to": "return SharedTotal(subtotal);" },
+      { "from": "// helper", "to": "decimal SharedTotal(decimal value) => Pricing.Total(value);" }
+    ]
+  }
+}
+```
+
+Each `from` must match exactly once, and replacements apply in order. Replacement text is literal. All transformations are prepared against original source before the first check or source mutation. A missing or ambiguous match is unresolved evidence; reconcile the case after a refactor. This keeps a small policy alternative small without storing a duplicate of the complete consumer file. Source-path alternatives remain available when a replacement file is clearer.
+
+The toolkit replaces the actual consumer entrypoint, runs the same check commands, and restores exact source bytes in `finally`. Fixture labels never become arguments to the checker. The shared production-variant engine rejects aliases that could overwrite fixtures or checker inputs. Every consumer's cases run; the engine does not cap the case count or permit omitting consumers to fit a matrix.
 
 Every declared consumer needs its own copy and unused-import case. Tests and source review must independently check the consumer inventory: deleting the only evidence that a consumer exists cannot prove that it is gone.
 
@@ -92,6 +108,62 @@ Return `0` for success, `1` for an assertion rejecting the implementation, and `
 For compiled or served applications, the ownership check must establish that changed source actually ran. The C# example rebuilds a separate consumer process; the Vue example compiles actual SFCs for fresh browser visits. Do not infer propagation from source names or imports.
 
 Keep `checks.files` complete: include checker helpers, build/project files, browser setup, dependency rules and the normal delivery configuration. The toolkit adds the contract, owners, consumers and alternative sources to the input inventory automatically. This avoids repeating the same inventory across several formats.
+
+## Discover the repository's capability and file map
+
+Keep related contracts under a directory such as `capabilities/`, with one
+`capability.json` per responsibility. Subdirectories can follow the native
+frontend/backend boundaries. They are organizational paths, not another registry.
+
+```sh
+cod catalog . capabilities
+cod catalog . capabilities --json
+cod catalog . capabilities --check-reviews
+cod verify-catalog . capabilities --allow-execution
+cod verify-catalog . capabilities/backend --allow-execution --json
+```
+
+The catalog is derived from the standard contracts in that directory. It shows
+each contract, owner, real consumers, extension rules, native check commands,
+review/map state and the complete input-file map. Adding or moving a contract
+changes discovery directly; do not maintain a second authored list of the same
+relationships. Duplicate IDs, malformed contracts, missing source files,
+empty catalogs and symlink traversal fail rather than producing a partial map.
+
+Plain `catalog` is read-only discovery. Its JSON has `catalogVersion: 1` and
+`conformance: "not-evaluated"`; stale reviews/maps remain visible with their gaps.
+`--check-reviews` exits `2` when any review is missing or stale. It does not run
+indexers or require generated maps, so an existing frontend review gate can use
+it without a .NET SDK. Invalid catalogs also exit `2`.
+
+`verify-catalog` runs the existing contract verification serially for every
+contract in the selected directory. Configured maps must be current. It exits
+`0` only when every declared contract is ready for review, `1` for a violation,
+and `2` for unresolved evidence. It does not record reviews or accept missing
+contracts. Source-changing checks must not overlap in the same checkout.
+
+### External references
+
+`dependencies` names selected external contract references, for example:
+
+```json
+{
+  "dependencies": [{
+    "id": "identity.permissions",
+    "repository": "https://example.test/identity",
+    "contract": "workspace-permissions",
+    "version": "1.2.0"
+  }]
+}
+```
+
+The derived catalog exposes these relationships for authorized readers and
+crawlers. It does not fetch repositories, authenticate a version label or prove
+remote conformance. A package version is not a Git revision or deployed version.
+The native checks must exercise the selected boundary; follow
+[distributed adoption](distributed-adoption.md) for provider/consumer version
+pairs and release gates. Discovery of newer versions never silently changes
+the contract version being verified.
 
 ## Inspect, review, verify
 

@@ -5,9 +5,11 @@ import { hash, reference } from './filesystem.js';
 import { inspectChangeBindings, verifyChangeBindings } from './change-bindings.js';
 import { inspectScipMap, refreshScipMap, scipMappingSchema } from './scip.js';
 import { runWorkflow } from './workflow.js';
+import { sourceReplacementsSchema, type VariantQualification } from './variant-qualification.js';
 
 const text = z.string().trim().min(1);
 const paths = z.array(text).refine(items => new Set(items).size === items.length, 'Duplicate paths');
+const alternative = z.union([text, sourceReplacementsSchema]);
 const implementation = z.object({
   entrypoint: text,
   export: text,
@@ -33,13 +35,13 @@ export const contractSchema = z.object({
     id: text,
     examples: z.record(z.string(), z.unknown()).default({}),
     alternatives: z.object({
-      wrapper: text,
-      copy: text,
-      unusedImport: text,
-      override: text.optional(),
+      wrapper: alternative,
+      copy: alternative,
+      unusedImport: alternative,
+      override: alternative.optional(),
       additional: z.array(z.object({
         name: text,
-        source: text,
+        source: alternative,
         followsOwner: z.boolean(),
       }).strict()).default([]),
     }).strict(),
@@ -51,6 +53,7 @@ export const contractSchema = z.object({
     extend: text,
     forbidden: z.array(text).min(1),
   }).strict(),
+  dependencies: z.array(z.object({ id: text, repository: text, contract: text, version: text }).strict()).default([]),
   requirements: z.record(z.string(), z.unknown()).refine(value => Object.keys(value).length > 0, 'Describe the expected results'),
   checks: z.object({ entrypoint: text, files: paths }).strict(),
   mapping: z.object({
@@ -60,6 +63,7 @@ export const contractSchema = z.object({
   }).strict().optional(),
 }).strict().superRefine((contract, context) => {
   const issue = (message: string) => context.addIssue({ code: 'custom', message });
+  if (new Set(contract.dependencies.map(item => item.id)).size !== contract.dependencies.length) issue('Dependency IDs must be unique');
   if (new Set(contract.consumers.map(item => item.id)).size !== contract.consumers.length) issue('Consumer IDs must be unique');
   if (contract.consumers.some(item => item.id === 'owner')) issue('The consumer ID "owner" is reserved');
   if (new Set(contract.consumers.map(item => item.entrypoint)).size !== contract.consumers.length) issue('Consumer entrypoints must be distinct');
@@ -91,8 +95,8 @@ function loadContract(rootPath: string, file: string) {
   const ownerFiles = [...new Set([contract.owner.entrypoint, ...contract.owner.files])];
   const consumerFiles = contract.consumers.flatMap(item => [item.entrypoint, ...item.files]);
   const checkerFiles = [...new Set([contract.checks.entrypoint, ...contract.checks.files])];
-  const cases = [
-    { id: 'original', role: 'delegation', overlays: [] as { target: string; source: string }[] },
+  const cases: VariantQualification['cases'] = [
+    { id: 'original', role: 'delegation', overlays: [] },
     ...contract.consumers.flatMap(consumer => {
       const alternatives = [
         { name: 'wrapper', role: 'composition', source: consumer.alternatives.wrapper },
@@ -105,12 +109,12 @@ function loadContract(rootPath: string, file: string) {
       ];
       return alternatives.map(item => ({
         id: `${consumer.id}/${item.name}`,
-        role: item.role,
-        overlays: [{ target: consumer.entrypoint, source: item.source }],
+        role: item.role as VariantQualification['cases'][number]['role'],
+        overlays: [{ target: consumer.entrypoint, ...(typeof item.source === 'string' ? { source: item.source } : { replace: item.source.replace }) }],
       }));
     }),
   ];
-  const fixtureFiles = cases.flatMap(item => item.overlays.map(overlay => overlay.source));
+  const fixtureFiles = cases.flatMap(item => item.overlays.flatMap(overlay => overlay.source === undefined ? [] : [overlay.source]));
   const inputs = [...new Set([file, ...ownerFiles, ...consumerFiles, ...checkerFiles, ...fixtureFiles])];
   for (const path of inputs) reference(root, path);
   const binding = {
@@ -149,7 +153,7 @@ export function inspectContract(root: string, file: string) {
   return {
     id: contract.id, profile: contract.profile, responsibility: contract.responsibility,
     owner: contract.owner, consumers: contract.consumers.map(({ id, entrypoint, export: symbol }) => ({ id, entrypoint, export: symbol })),
-    decision: contract.decision, rules: contract.rules, requirements: contract.requirements,
+    decision: contract.decision, rules: contract.rules, dependencies: contract.dependencies, requirements: contract.requirements,
     checks: ['behavior', 'ownership', 'changes'].map(mode => ({ mode, ...profileCommand(contract.profile, contract.checks.entrypoint, file, mode) })),
     counterexamples: loaded.qualification.cases.map(item => ({ name: item.id, expected: ['independent-copy', 'dead-owner-decoy', 'policy-override'].includes(item.role) ? 'reject ownership; preserve behavior' : 'accept', replacements: item.overlays })),
     review: { file: reviewFile, state: review?.state ?? 'missing', findings: review?.findings ?? [] },
