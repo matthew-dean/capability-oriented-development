@@ -208,12 +208,24 @@ it('rebuilds damaged or differently scoped snapshots without manual cache deleti
   expect(() => syncConnections(c.root, 'capabilities/alternate-sources.json')).toThrow();
 });
 
-it('clears an interrupted temporary snapshot under the exclusive lock without following links', () => {
+it('clears an interrupted regular temporary snapshot under the exclusive lock', () => {
   const p = provider(); const c = consumer(p); syncConnections(c.root);
   const temporary = join(c.root, '.cod/cache/connections.json.tmp'); writeFileSync(temporary, '{unfinished');
   expect(syncConnections(c.root).state).toBe('current'); expect(existsSync(temporary)).toBe(false);
+});
+
+it('clears an interrupted symlink snapshot without changing its target', context => {
+  const p = provider(); const c = consumer(p); syncConnections(c.root);
+  const temporary = join(c.root, '.cod/cache/connections.json.tmp');
   const target = join(p.root, 'must-not-change.txt'); writeFileSync(target, 'unchanged');
-  symlinkSync(target, temporary);
+  try { symlinkSync(target, temporary); }
+  catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (process.platform === 'win32' && (code === 'EPERM' || code === 'EACCES')) {
+      context.skip('Symlink creation requires unavailable Windows privileges'); return;
+    }
+    throw error;
+  }
   expect(syncConnections(c.root).state).toBe('current');
   expect(readFileSync(target, 'utf8')).toBe('unchanged');
   expect(existsSync(temporary)).toBe(false);
