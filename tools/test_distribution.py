@@ -30,6 +30,7 @@ class DistributionTests(unittest.TestCase):
                 self.assertIn('examples/native-stack/checks/contract.mjs', manifest['files'])
                 self.assertIn('docs/evidence.md', manifest['files'])
                 self.assertIn('docs/distributed-adoption.md', manifest['files'])
+                self.assertIn('docs/connected-catalogs.md', manifest['files'])
                 self.assertIn('examples/system/system.json', manifest['files'])
                 self.assertFalse(any('study-evidence' in name or name.endswith('.patch') for name in manifest['files']))
 
@@ -53,6 +54,9 @@ class DistributionTests(unittest.TestCase):
                 self.assertIn('examples/toolbar/toolbar.capability.json', names)
                 self.assertIn('tests/core.test.ts', names)
                 self.assertIn('tools/test_distribution.py', names)
+                self.assertIn('tools/setup.mjs', names)
+                for name in ['catalog', 'connections', 'dependencies', 'bootstrap']:
+                    self.assertIn(f'tests/{name}.test.ts', names)
                 self.assertNotIn('tests/provenance.test.ts', names)
                 for name in names:
                     if name.startswith('tests/'):
