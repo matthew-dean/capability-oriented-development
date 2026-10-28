@@ -222,3 +222,10 @@ The old low-level commands/APIs remain for existing integrations. They share the
 ## Connected provider catalogs
 
 A dependency can read its version from a native NuGet PackageReference or JSON pointer. `revision` accepts an immutable Git commit or `{ "format": "nuget" }` to read matching restored package provenance. See [connected catalogs](connected-catalogs.md) for the complete setup, freshness model and limits. The version source file is automatically bound into the contract review inputs. Resolving provider metadata does not establish remote conformance.
+
+For a readable source fragment shared by multiple counterexamples, a replacement
+step may use `{"from":"unique source text","toFile":"test/fixtures/helper.cs.txt"}`
+instead of `to`. Supply exactly one. The toolkit reads the fragment as text,
+includes it in the same canonical review/map input inventory, checks containment
+and fixture aliasing before mutation, and restores production source afterward.
+This keeps test code in native fixtures instead of repeating escaped code in JSON.

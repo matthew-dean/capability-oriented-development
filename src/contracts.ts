@@ -6,7 +6,7 @@ import { inspectChangeBindings, verifyChangeBindings } from './change-bindings.j
 import { inspectScipMap, refreshScipMap, scipMappingSchema } from './scip.js';
 import { runWorkflow } from './workflow.js';
 import { dependencySchema, dependencyVersion } from './dependencies.js';
-import { sourceReplacementsSchema, type VariantQualification } from './variant-qualification.js';
+import { sourceReplacementsSchema, replacementSources, type VariantQualification } from './variant-qualification.js';
 
 const text = z.string().trim().min(1);
 const paths = z.array(text).refine(items => new Set(items).size === items.length, 'Duplicate paths');
@@ -93,7 +93,7 @@ export function contractFiles(contract: z.output<typeof contractSchema>, file: s
   const checkerFiles = [...new Set([contract.checks.entrypoint, ...contract.checks.files, ...contract.dependencies.flatMap(item => typeof item.version === 'string' ? [] : [item.version.file])])];
   const fixtureFiles = contract.consumers.flatMap(item => [item.alternatives.wrapper, item.alternatives.copy, item.alternatives.unusedImport,
     ...(item.alternatives.override ? [item.alternatives.override] : []), ...item.alternatives.additional.map(extra => extra.source)]
-    .filter((source): source is string => typeof source === 'string'));
+    .flatMap(source => typeof source === 'string' ? [source] : replacementSources(source.replace)));
   const inputs = [...new Set([file, ...ownerFiles, ...consumerFiles, ...checkerFiles, ...fixtureFiles])];
   return { ownerFiles, consumerFiles, checkerFiles, fixtureFiles, inputs };
 }

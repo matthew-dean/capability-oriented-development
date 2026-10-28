@@ -151,21 +151,43 @@
                         "minItems": 1,
                         "type": "array",
                         "items": {
-                          "type": "object",
-                          "properties": {
-                            "from": {
-                              "type": "string",
-                              "minLength": 1
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "to"
+                              ],
+                              "additionalProperties": false
                             },
-                            "to": {
-                              "type": "string"
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "toFile": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "toFile"
+                              ],
+                              "additionalProperties": false
                             }
-                          },
-                          "required": [
-                            "from",
-                            "to"
-                          ],
-                          "additionalProperties": false
+                          ]
                         }
                       }
                     },
@@ -189,21 +211,43 @@
                         "minItems": 1,
                         "type": "array",
                         "items": {
-                          "type": "object",
-                          "properties": {
-                            "from": {
-                              "type": "string",
-                              "minLength": 1
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "to"
+                              ],
+                              "additionalProperties": false
                             },
-                            "to": {
-                              "type": "string"
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "toFile": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "toFile"
+                              ],
+                              "additionalProperties": false
                             }
-                          },
-                          "required": [
-                            "from",
-                            "to"
-                          ],
-                          "additionalProperties": false
+                          ]
                         }
                       }
                     },
@@ -227,21 +271,43 @@
                         "minItems": 1,
                         "type": "array",
                         "items": {
-                          "type": "object",
-                          "properties": {
-                            "from": {
-                              "type": "string",
-                              "minLength": 1
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "to"
+                              ],
+                              "additionalProperties": false
                             },
-                            "to": {
-                              "type": "string"
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "toFile": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "toFile"
+                              ],
+                              "additionalProperties": false
                             }
-                          },
-                          "required": [
-                            "from",
-                            "to"
-                          ],
-                          "additionalProperties": false
+                          ]
                         }
                       }
                     },
@@ -265,21 +331,43 @@
                         "minItems": 1,
                         "type": "array",
                         "items": {
-                          "type": "object",
-                          "properties": {
-                            "from": {
-                              "type": "string",
-                              "minLength": 1
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "to": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "to"
+                              ],
+                              "additionalProperties": false
                             },
-                            "to": {
-                              "type": "string"
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "toFile": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "toFile"
+                              ],
+                              "additionalProperties": false
                             }
-                          },
-                          "required": [
-                            "from",
-                            "to"
-                          ],
-                          "additionalProperties": false
+                          ]
                         }
                       }
                     },
@@ -313,21 +401,43 @@
                               "minItems": 1,
                               "type": "array",
                               "items": {
-                                "type": "object",
-                                "properties": {
-                                  "from": {
-                                    "type": "string",
-                                    "minLength": 1
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "from": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "to": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "from",
+                                      "to"
+                                    ],
+                                    "additionalProperties": false
                                   },
-                                  "to": {
-                                    "type": "string"
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "from": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "toFile": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "from",
+                                      "toFile"
+                                    ],
+                                    "additionalProperties": false
                                   }
-                                },
-                                "required": [
-                                  "from",
-                                  "to"
-                                ],
-                                "additionalProperties": false
+                                ]
                               }
                             }
                           },

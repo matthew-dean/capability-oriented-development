@@ -254,3 +254,22 @@ it('applies replacements sequentially and rejects repeated source matches withou
   expect(() => readFileSync(join(f.root, 'started'))).toThrow();
   expect(readFileSync(join(f.root, 'consumer.mjs'), 'utf8')).toBe(original);
 });
+
+it('shares readable source fragments across replacement cases and binds their changes to review', async () => {
+  const f = fixture(); const original = readFileSync(join(f.root, 'consumer.mjs'), 'utf8');
+  const value = { ...f.contract, consumers: [{ ...f.contract.consumers[0]!, alternatives: {
+    wrapper: { replace: [{ from: original, toFile: 'wrapper.mjs' }] },
+    copy: { replace: [{ from: original, toFile: 'copy.mjs' }] },
+    unusedImport: { replace: [{ from: original, toFile: 'decoy.mjs' }] },
+  } }] };
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(value));
+  f.review();
+  expect(inspectContract(f.root, 'capability.json').files).toContain('copy.mjs');
+  expect((await execute(f.root)).state).toBe('ready-for-review');
+  expect(readFileSync(join(f.root, 'consumer.mjs'), 'utf8')).toBe(original);
+  writeFileSync(join(f.root, 'copy.mjs'), 'export const run=()=>"different";');
+  expect(inspectContract(f.root, 'capability.json').review.state).toBe('stale');
+  const invalid = structuredClone(value); invalid.consumers[0]!.alternatives.copy.replace[0]!.toFile = '../escape';
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(invalid));
+  expect(() => f.review()).toThrow();
+});

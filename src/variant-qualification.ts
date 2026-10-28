@@ -4,8 +4,12 @@ import { hash, reference } from './filesystem.js';
 import { preflightRuntimeContract, verifyRuntimeContract } from './runtime-contracts.js';
 
 export const sourceReplacementsSchema = z.object({
-  replace: z.array(z.object({ from: z.string().min(1), to: z.string() }).strict()).min(1),
+  replace: z.array(z.union([
+    z.object({ from: z.string().min(1), to: z.string() }).strict(),
+    z.object({ from: z.string().min(1), toFile: z.string().min(1) }).strict(),
+  ])).min(1),
 }).strict();
+export const replacementSources = (steps: z.input<typeof sourceReplacementsSchema>['replace']) => steps.flatMap(step => 'toFile' in step ? [step.toFile] : []);
 const overlaySchema = z.object({
   target: z.string().min(1), source: z.string().min(1).optional(), replace: sourceReplacementsSchema.shape.replace.optional(),
 }).strict().superRefine((overlay, context) => {
@@ -28,7 +32,7 @@ export const variantQualificationSchema = z.object({
   if (value.witness.some(file => !value.inputs.includes(file))) context.addIssue({ code: 'custom', message: 'Witness files must be registered inputs' });
   for (const c of value.cases) {
     if (new Set(c.overlays.map(o => o.target)).size !== c.overlays.length) context.addIssue({ code: 'custom', message: 'Duplicate overlay targets' });
-    if (c.overlays.some(o => !value.inputs.includes(o.target) || (o.source !== undefined && !value.inputs.includes(o.source)))) context.addIssue({ code: 'custom', message: 'Overlay sources and targets must be registered inputs' });
+    if (c.overlays.some(o => !value.inputs.includes(o.target) || [o.source, ...replacementSources(o.replace ?? [])].some(source => source !== undefined && !value.inputs.includes(source)))) context.addIssue({ code: 'custom', message: 'Overlay sources and targets must be registered inputs' });
     if (c.overlays.some(o => value.witness.includes(o.target))) context.addIssue({ code: 'custom', message: 'Variants cannot replace their witness' });
   }
 });
@@ -49,7 +53,7 @@ export async function qualifyVariants(root: string, input: unknown, options: { a
   const initial = preflightRuntimeContract(root, runtime);
   // Resolve every case before mutation. Canonical aliases must not overwrite fixtures or the observer.
   const fileId = (file: string) => { const stat = statSync(file, {bigint:true}); return `${stat.dev}:${stat.ino}`; };
-  const sources = new Set(definition.cases.flatMap(c => c.overlays.flatMap(o => o.source === undefined ? [] : [fileId(reference(root, o.source))])));
+  const sources = new Set(definition.cases.flatMap(c => c.overlays.flatMap(o => [o.source, ...replacementSources(o.replace ?? [])].flatMap(source => source === undefined ? [] : [fileId(reference(root, source))]))));
   const witnesses = new Set(definition.witness.map(file => fileId(reference(root, file))));
   const cases = definition.cases.map(c => ({ ...c, overlays: c.overlays.map(o => ({ ...o, targetPath: realpathSync(reference(root, o.target)), sourcePath: o.source === undefined ? undefined : realpathSync(reference(root, o.source)) })) }));
   for (const c of cases) {
@@ -63,7 +67,9 @@ export async function qualifyVariants(root: string, input: unknown, options: { a
     let bytes = overlay.sourcePath === undefined ? originals.get(overlay.targetPath)! : readFileSync(overlay.sourcePath);
     if (overlay.replace) {
       let source = bytes.toString('utf8');
-      for (const { from, to } of overlay.replace) {
+      for (const step of overlay.replace) {
+        const { from } = step;
+        const to = 'to' in step ? step.to : readFileSync(reference(root, step.toFile), 'utf8');
         if (source.split(from).length !== 2) throw Error(`Replacement must match exactly once in ${overlay.target}`);
         source = source.replace(from, () => to);
       }
