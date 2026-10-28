@@ -73,6 +73,8 @@ node dist/cli.js connections <application> --json
 
 Run `sync` in the existing CI workflow when current discovery is required, or on a scheduled job that reports upstream changes. Preserve the ignored cache between runs for efficiency. During partial adoption, `sync --report-only` completes an informational discovery report with exit 0 even when external relationships are unresolved; malformed local configuration still fails. Keep that CI step named as discovery and preserve the reported gaps. Its success is not conformance evidence. The default `sync` still exits 2 for unresolved relationships.
 
+The source allowlist and credential access are separate. A consumer CI job may restore packages successfully yet lack permission to fetch a private provider. Provision provider read access through the repository’s approved CI credential workflow; preserve unresolved discovery until that access exists. A failed fetch means metadata is unavailable, not that the provider has no contract.
+
 A clean CI run can reconstruct selected metadata from immutable revisions and the normal package restore; no additional COD version lock is required. CI integration owns its triggers and notifications—COD supplies the commands, not a hosted watcher.
 
 A successful refresh says metadata was resolved at that time, not that remote main will remain unchanged. A local input change marks the cached snapshot stale. Unavailable repositories, missing contracts, missing provenance and undeclared transitive sources remain unresolved; old metadata may remain visible as cached data but cannot turn the failed refresh green. Commands return 0 for current metadata and 2 for stale or unresolved metadata. All outputs retain `conformance: "not-evaluated"`.
