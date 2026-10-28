@@ -11,6 +11,8 @@ Refreshing discovery never upgrades a dependency or certifies compatibility. Nat
 
 ## Connect an existing repository
 
+For source-installed tooling, run `node tools/setup.mjs` in the pinned toolkit checkout. It reads the declared pnpm release and installs/builds without changing global package managers. Exercise this path with a cold manager cache in CI; a warmed developer cache can hide bootstrap incompatibility.
+
 Adopt [standard contracts](contracts.md) under `capabilities/**/capability.json`. Each consumer contract declares its direct external dependencies. For a restored NuGet package, read its version from the actual consuming project and its source commit from package provenance:
 
 ```json
