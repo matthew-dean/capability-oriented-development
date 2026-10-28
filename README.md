@@ -19,7 +19,7 @@ cod-kit provides **agent skills, a Claude Code plugin, a verification CLI and ru
 | Give my agent the workflow | [Install the skills or plugin](#install-agent-guidance) |
 | See a realistic bypass fail | [Shared-button walkthrough](examples/native-stack/README.md) |
 | Adopt COD in an existing repository | [Adoption workflow](docs/workflows.md) · [Existing-tool recipes](docs/tool-recipes.md) |
-| Map source or connect repositories | [SCIP mapping](docs/scip-mapping.md) · [Distributed adoption](docs/distributed-adoption.md) |
+| Map source or connect repositories | [SCIP mapping](docs/scip-mapping.md) · [Connected catalogs](docs/connected-catalogs.md) · [Distributed adoption](docs/distributed-adoption.md) |
 
 ## Install agent guidance
 
