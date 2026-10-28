@@ -49,7 +49,7 @@ Create `capabilities/sources.json`:
 }
 ```
 
-The optional `directory` defaults to `capabilities`; omit `discoveryRef` to follow the remote default branch (`HEAD`) rather than guessing its name. Repository identifiers must match the dependency declarations. The source list explicitly names the repositories this workflow may contact; a downloaded contract cannot authorize fetching arbitrary additional repositories. Add a newly discovered connection deliberately. HTTPS, SSH and explicitly configured absolute local Git paths are supported. Use existing Git credentials; do not put tokens into URLs.
+The optional `directory` defaults to `capabilities`; omit `discoveryRef` to follow the remote default branch (`HEAD`) rather than guessing its name. Repository identifiers must match the dependency declarations. The source list explicitly names the repositories this workflow may contact; a downloaded contract cannot authorize fetching arbitrary additional repositories. Add a newly discovered connection deliberately. HTTPS, SSH and explicitly configured absolute local Git paths are supported. Use existing Git credentials; do not put tokens into URLs. Container CI must also establish Git trust for its checked-out workspace when the checkout and process have different owners. Configure `safe.directory` for that exact workspace in the job; never use a wildcard. The toolkit preserves Git ownership checks rather than automatically trusting arbitrary directories.
 
 Run from the toolkit checkout, replacing `<application>` with the application root:
 
