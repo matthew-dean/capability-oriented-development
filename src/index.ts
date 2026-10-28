@@ -35,3 +35,10 @@ export type { ScipMapping, ScipSnapshot } from './scip.js';
 
 export { contractSchema, inspectContract, recordContractReview, verifyContract, refreshContractMap, profileCommand } from './contracts.js';
 export type { CapabilityContract } from './contracts.js';
+
+export { inspectCatalog, verifyCatalog } from './catalog.js';
+
+export { sourcesSchema, syncConnections, inspectConnections } from './connections.js';
+export type { ConnectionReport } from './connections.js';
+export { dependencySchema, dependencyVersion, dependencyRevision, versionSourceSchema } from './dependencies.js';
+export type { CapabilityDependency } from './dependencies.js';

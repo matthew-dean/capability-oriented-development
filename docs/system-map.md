@@ -1,5 +1,7 @@
 # Inspect a cross-repository capability map
 
+For standard contract adoption, start with the derived `cod catalog` and [connected catalog resolver](connected-catalogs.md). This supplied inventory format handles additional declared runtime and migration evidence; it is not a second required registry.
+
 `inspect-system` checks a supplied inventory and local authoritative-contract exports. It helps find missing owners, unknown dependencies, changed provider artifacts and consumers still pinned to old contract bytes. It never fetches repositories, runs checks, or certifies conformance.
 
 ```sh

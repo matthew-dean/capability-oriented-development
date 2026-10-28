@@ -171,3 +171,105 @@ it('rejects invalid mapping settings before review or cache files exist', async 
     await expect(execute(f.root)).rejects.toThrow();
   }
 });
+
+it('uses compact source replacements for real consumers and keeps complete consumer coverage above sixteen cases', async () => {
+  const f = fixture();
+  const original = readFileSync(join(f.root, 'consumer.mjs'), 'utf8');
+  const consumers = Array.from({ length: 6 }, (_, index) => {
+    const entrypoint = `consumer-${index}.mjs`;
+    writeFileSync(join(f.root, entrypoint), original);
+    return { id: `screen-${index}`, entrypoint, export: 'run', alternatives: {
+      wrapper: { replace: [{ from: original, to: 'import {value} from "./owner.mjs"; export const run = () => value();' }] },
+      copy: { replace: [{ from: original, to: 'export const run = () => "shared";' }] },
+      unusedImport: { replace: [{ from: original, to: 'import {value} from "./owner.mjs"; export const run = () => {value(); return "shared";};' }] },
+    } };
+  });
+  // Each check executes every real consumer, not a case label or the provider alone.
+  writeFileSync(join(f.root, 'check.mjs'), `
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+const mode=process.argv[2], contract=JSON.parse(readFileSync(process.argv[3],'utf8'));
+const original=readFileSync('owner.mjs');
+try {
+ if(mode==='ownership') writeFileSync('owner.mjs','export const value = () => "changed-owner";');
+ if(mode!=='changes') for(const consumer of contract.consumers) {
+  const {run}=await import('./'+consumer.entrypoint);
+  assert.equal(run(),mode==='ownership'?'changed-owner':contract.requirements.expected);
+ }
+} catch(error) { process.exitCode=error instanceof assert.AssertionError?1:2; }
+finally {writeFileSync('owner.mjs',original);}
+`);
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify({ ...f.contract, consumers }));
+  f.review();
+  const result = await execute(f.root);
+  expect(result.state).toBe('ready-for-review');
+  expect('qualifications' in result && result.qualifications[0]!.report.cases).toHaveLength(19);
+  for (const consumer of consumers) expect(readFileSync(join(f.root, consumer.entrypoint), 'utf8')).toBe(original);
+});
+
+it('rejects ambiguous compact replacements before running commands or changing any source', async () => {
+  const f = fixture();
+  const original = readFileSync(join(f.root, 'consumer.mjs'));
+  const consumer = f.contract.consumers[0]!;
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify({ ...f.contract, consumers: [{ ...consumer,
+    alternatives: { ...consumer.alternatives, unusedImport: { replace: [{ from: 'not in the actual consumer', to: 'replacement' }] } },
+  }] }));
+  f.review();
+  await expect(execute(f.root)).rejects.toThrow(/exactly once/);
+  expect(readFileSync(join(f.root, 'consumer.mjs'))).toEqual(original);
+});
+
+it('restores compact source alternatives when a native checker cannot execute the variant', async () => {
+  const f = fixture();
+  const original = readFileSync(join(f.root, 'consumer.mjs'), 'utf8');
+  const consumer = f.contract.consumers[0]!;
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify({ ...f.contract, consumers: [{ ...consumer,
+    alternatives: { ...consumer.alternatives, wrapper: { replace: [{ from: original, to: 'export const run = ;' }] } },
+  }] }));
+  f.review();
+  const result = await execute(f.root);
+  expect(result.state).toBe('unresolved');
+  expect(readFileSync(join(f.root, 'consumer.mjs'), 'utf8')).toBe(original);
+});
+
+it('applies replacements sequentially and rejects repeated source matches without running a checker', async () => {
+  const f = fixture();
+  const original = readFileSync(join(f.root, 'consumer.mjs'), 'utf8');
+  const consumer = f.contract.consumers[0]!;
+  const value = { ...f.contract, consumers: [{ ...consumer,
+    alternatives: { ...consumer.alternatives, wrapper: { replace: [
+      { from: original, to: 'import {value} from "./owner.mjs"; const delegate=()=>value(); export const run=()=>delegate();' },
+      { from: 'run=()=>delegate()', to: 'run=delegate' },
+    ] } },
+  }] };
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(value));
+  f.review();
+  expect((await execute(f.root)).state).toBe('ready-for-review');
+  // A later invalid case must be found before even the original case executes.
+  value.consumers[0]!.alternatives.wrapper.replace = [{ from: 'e', to: 'x' }];
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(value));
+  writeFileSync(join(f.root, 'check.mjs'), 'import {writeFileSync} from "node:fs"; writeFileSync("started", "yes");');
+  f.review();
+  await expect(execute(f.root)).rejects.toThrow(/exactly once/);
+  expect(() => readFileSync(join(f.root, 'started'))).toThrow();
+  expect(readFileSync(join(f.root, 'consumer.mjs'), 'utf8')).toBe(original);
+});
+
+it('shares readable source fragments across replacement cases and binds their changes to review', async () => {
+  const f = fixture(); const original = readFileSync(join(f.root, 'consumer.mjs'), 'utf8');
+  const value = { ...f.contract, consumers: [{ ...f.contract.consumers[0]!, alternatives: {
+    wrapper: { replace: [{ from: original, toFile: 'wrapper.mjs' }] },
+    copy: { replace: [{ from: original, toFile: 'copy.mjs' }] },
+    unusedImport: { replace: [{ from: original, toFile: 'decoy.mjs' }] },
+  } }] };
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(value));
+  f.review();
+  expect(inspectContract(f.root, 'capability.json').files).toContain('copy.mjs');
+  expect((await execute(f.root)).state).toBe('ready-for-review');
+  expect(readFileSync(join(f.root, 'consumer.mjs'), 'utf8')).toBe(original);
+  writeFileSync(join(f.root, 'copy.mjs'), 'export const run=()=>"different";');
+  expect(inspectContract(f.root, 'capability.json').review.state).toBe('stale');
+  const invalid = structuredClone(value); invalid.consumers[0]!.alternatives.copy.replace[0]!.toFile = '../escape';
+  writeFileSync(join(f.root, 'capability.json'), JSON.stringify(invalid));
+  expect(() => f.review()).toThrow();
+});

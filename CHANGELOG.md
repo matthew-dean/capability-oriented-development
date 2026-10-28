@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0 — Connected capability catalogs
+
+- Derive local capability and file catalogs from standard contracts, with one shared input inventory for review and source mapping.
+- Retrieve selected provider commits and latest discovery metadata through cached, shallow Git fetches without checking out or executing provider code.
+- Read native JSON/NuGet versions and matching NuGet source provenance instead of duplicating version locks.
+- Report cycles, missing coverage, cache freshness and potentially affected consumers; expose read-only catalogs through MCP.
+- Verify whole adopted catalogs and express qualification alternatives as small exact source substitutions.
+- Document CI discovery versus conformance, cross-repository adoption and generated-input preparation.
+
 ## Unreleased
 
 - Added a unified `capability.json` format with need/reuse decisions, owner and consumer paths, requirements, native checks and optional SCIP setup.

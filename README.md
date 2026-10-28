@@ -81,6 +81,10 @@ Request `/cod:cod-adopt` or `/cod:cod-workflow`. This is a local plugin installa
 
 All three use the same schema and verification engine. [Compare profiles](docs/contract-profiles.md).
 
+## Find capabilities across repositories
+
+`cod catalog <root>` derives a file and ownership map from standard contracts. `cod sync <root>` retrieves connected provider catalogs through Git; `cod connections <root>` shows the selected versions, newer candidates, missing evidence and affected consumers. Retrieval never executes provider code or upgrades packages. See [setup and workflow](docs/connected-catalogs.md).
+
 ## Build and run
 
 <details>
@@ -89,13 +93,15 @@ All three use the same schema and verification engine. [Compare profiles](docs/c
 Use Node 22.13+ on the 22 line or Node 24, pnpm through Corepack, Python 3.10+, and the .NET 10 SDK for the C# example. From the cod-kit checkout:
 
 ```sh
-corepack pnpm install --frozen-lockfile
+node tools/setup.mjs
 corepack pnpm exec playwright install chromium
 corepack pnpm build
 node dist/cli.js inspect examples/native-stack capability.json
 node dist/cli.js verify examples/native-stack capability.json --allow-execution
 corepack pnpm verify:pr
 ```
+
+Source setup installs and builds with the pnpm release declared in `package.json`, using npm’s native executable lookup. It does not change global tools or rely on an existing Corepack cache. The remaining Corepack commands require a compatible Corepack installation/cache; CI uses Corepack 0.34.7. Source setup itself is independent of that cache.
 
 Checked-in example reviews are current for their supplied sources. After editing, review and record the changed agreement before verifying. Commands run trusted local code and source probes; run one verification process at a time in a checkout.
 
