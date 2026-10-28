@@ -107,6 +107,8 @@ Return `0` for success, `1` for an assertion rejecting the implementation, and `
 
 For compiled or served applications, the ownership check must establish that changed source actually ran. The C# example rebuilds a separate consumer process; the Vue example compiles actual SFCs for fresh browser visits. Do not infer propagation from source names or imports.
 
+Keep check orchestration in the repository’s test/tooling area, with behavioral assertions in the existing native consumer suite. Wire it into the appropriate delivery lane. Run the normal coverage gates as well as contract verification; do not lower production thresholds or add production-source exclusions to accommodate a check runner.
+
 Keep `checks.files` complete: include checker helpers, build/project files, browser setup, dependency rules and the normal delivery configuration. The toolkit adds the contract, owners, consumers and alternative sources to the input inventory automatically. This avoids repeating the same inventory across several formats.
 
 ## Discover the repository's capability and file map
