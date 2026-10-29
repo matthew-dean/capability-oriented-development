@@ -2,6 +2,32 @@
 
 Start with [the plain-language guide](start-here.md). All new toolkit adoption uses the [same contract format](contracts.md) and [native profiles](contract-profiles.md).
 
+## Establish intent before choosing an owner
+
+Start with the outcome the user wants and the observable result that would satisfy it. Read relevant source, existing product decisions and specifications before asking questions. Existing behavior can resolve implementation questions; it cannot authorize an unrelated product decision.
+
+Ask when an unresolved answer would materially change behavior, access, data handling, compatibility, scope or acceptance. Explain the consequence and offer concrete choices where useful. Do not ask questions already answered by the request or repository, require a fixed questionnaire, or seek approval for routine implementation choices. Honor explicit delegation: make the decision within that authority and record it as your choice, not as user approval. Continue independent investigation while waiting; leave work that depends on an unanswered consequential decision unimplemented.
+
+Keep the smallest sufficient record in the request, existing issue or feature brief. Capture the intended outcome, observable acceptance and consequential decisions or remaining unknowns. Small changes may need only a sentence; a substantial feature may need scenarios. Keep user statements, existing constraints and agent assumptions distinct, and link to the source where it already lives. Do not create a new brief, checklist or approval file merely to use COD.
+
+Once intent is clear, inspect capabilities and choose configuration, reuse, composition, extension or creation. Put the enduring responsibility and executable expected results in the existing contract; keep feature-specific orchestration and temporary discussion with the feature. With this toolkit, `decision.need` explains the actual need, `decision.considered` and `rationale` explain the choice, and `requirements` supplies the native check's expected values. A new feature may change several responsibilities; an existing contract's passing check cannot cover behavior it does not observe.
+
+For example:
+
+- **“This button should look like a link.”** Inspect its current action and the design system's variants. Preserve action semantics; do not ask whether to create a navigation feature merely because the appearance resembles a link.
+- **“Let teammates share a report.”** Inspect existing sharing and permission rules. If they do not settle it, ask who can receive access and whether sharing means a file or a live link before implementing that behavior.
+- **“Export the existing catalog as JSON to stdout; no upload or access changes.”** Inspect the current CLI first. If it already does this, use it; do not create a sharing abstraction or another specification.
+
+### Enforce the agreed behavior with existing checks
+
+Translate each changed acceptance condition into an assertion through its actual owner and consumer. Reuse native types, API schemas, component tests and delivery gates. Challenge a plausible wrong implementation and, where a shared rule is involved, a copy or ignored-owner result. Check both contract-only and implementation-only disagreement after refreshing review. Keep a valid implementation or composition passing, so the gate cannot succeed by rejecting everything.
+
+The supplied Vue example expresses its agreed busy-state behavior in `requirements.states`. The existing browser checker observes `disabled`, `ariaBusy` and the activation result. Changing an expected value to contradict the runtime must fail even after a fresh review; removing agreed activation blocking must also fail. This needs no separate feature format or intent-checking service. See the [example](../examples/vue-design-system/README.md).
+
+Review the result against the original request and recorded decisions as well as the contract. A checker can establish agreement with executable expected values; it cannot prove that an agent asked every important question, truthfully recorded an answer or encoded the right product requirement. More metadata alone does not close that semantic gap. Keep unanswered decisions and unobserved requirements explicit instead of calling them verified.
+
+SDD tools may supply the feature description, clarification and planning stages. COD accepts those artifacts and carries the resulting obligations into maintained owners and consumers; it does not require copying them into a second specification system.
+
 ## Adopt in an existing repository
 
 Choose one shared responsibility that is worth protecting. Identify its real owner and consumers. Reuse existing public types, component APIs and tests.

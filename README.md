@@ -16,6 +16,7 @@ cod-kit provides **agent skills, a Claude Code plugin, a verification CLI and ru
 | I want to… | Go to… |
 |---|---|
 | Understand what qualifies as COD | [Plain-language introduction](docs/start-here.md) · [Specification](docs/specification.md) |
+| Describe or clarify a new feature | [From intent to enforcement](docs/workflows.md#establish-intent-before-choosing-an-owner) |
 | Give my agent the workflow | [Install the skills or plugin](#install-agent-guidance) |
 | See a realistic bypass fail | [Shared-button walkthrough](examples/native-stack/README.md) |
 | Adopt COD in an existing repository | [Adoption workflow](docs/workflows.md) · [Existing-tool recipes](docs/tool-recipes.md) |
