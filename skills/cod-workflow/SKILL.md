@@ -7,6 +7,14 @@ description: Implement and reconcile changes using persistent capability ownersh
 
 Deliver the requested behavior through fitting shared responsibilities and keep their executable contracts current. COD may accompany spec-driven development. Respect the task scope, repository conventions and existing authorization; adopting this skill does not authorize publication or unrelated edits.
 
+## Establish the requested outcome
+
+Before selecting an owner or authoring a contract, follow [intent and clarification](https://github.com/matthew-dean/cod-kit/blob/main/docs/workflows.md#establish-intent-before-choosing-an-owner) (also bundled in `docs/workflows.md`). Inspect existing decisions first. Ask only about unresolved choices that materially change behavior, access, data handling, compatibility, scope or acceptance; do not invent those answers or impose a questionnaire on a clear task. Honor explicitly delegated decisions without inventing user approval. Keep work dependent on an unanswered consequential choice unimplemented while continuing independent investigation.
+
+Assemble a compact, source-grounded brief: acceptance → responsible capability and growth path → consumers → existing or planned native checks → remaining decisions/evidence. Decide whether intent is sufficient to implement or needs a product decision or investigation. New code/tests can be planned work rather than blockers; a matching contract or linked test is not proof of complete or executed coverage. Keep this in the conversation or existing issue unless a maintained artifact is useful.
+
+Use the request or existing issue/brief to retain acceptance conditions and consequential answers, distinguishing user requirements, existing constraints and assumptions. Do not require another file. Once resolved, connect changed acceptance to the relevant contract and native assertions; review them against the original intent. Passing conformance does not prove the requirement was correctly chosen.
+
 ## Start with the unified contract
 
 When the project uses the toolkit, read `capability.json` and run `cod inspect <root> <contract>` (or MCP `cod_inspect_contract`) before choosing an owner. All supported JavaScript, C# and Vue profiles use that format. It selects actual native execution; do not create separate runtime, qualification, workflow or binding JSON files for a new adoption.
