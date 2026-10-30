@@ -84,7 +84,7 @@ export async function runWorkflow(
     ...contracts.flatMap(c => c.definition.obligations),
     ...qualifications.flatMap(q => q.definition.qualificationVersion === 2 ? [q.definition.behavior, q.definition.conformance] : q.definition.cases.flatMap(c => [c.behavior, c.conformance])),
   ]) : null;
-  if (preparation && preparation.state !== 'verified') return { workflowVersion: 1 as const, id: workflow.id, state: 'unresolved' as const, gaps: ['Native checker preparation failed; no calibration was accepted.'], decision: workflow.decision, reconciliation, changeBindings, preparation, qualifications: [], contracts: [], definitionDigest: hash(JSON.stringify(workflow)), inputs: before, changedInputs: [] };
+  if (preparation && preparation.state !== 'verified') return { workflowVersion: 1 as const, id: workflow.id, state: 'unresolved' as const, gaps: ['Native checker preparation failed; no calibration was accepted.'], decision: workflow.decision, reconciliation, changeBindings, preparation, qualifications: [], contracts: [], definitionDigest: hash(JSON.stringify(workflow)), inputs: before, changedInputs: preparation.changedInputs };
   const qualified = [];
   for (const q of qualifications) qualified.push({ file: q.file, contracts: q.contracts, report: await (q.definition.qualificationVersion === 2 ? qualifyVariants(root, q.definition, options) : qualifyWitness(root, q.definition, options)) });
   const executed = [];

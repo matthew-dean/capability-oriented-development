@@ -249,7 +249,15 @@ async function prepareStandaloneChecker(loaded: ReturnType<typeof loadContract>,
       args: ['msbuild', contract.checks.entrypoint, '-restore', '-t:Build', '-getProperty:TargetPath,BaseIntermediateOutputPath', '-getItem:ProjectReference,Compile', '-v:quiet', '-consoleLoggerParameters:ErrorsOnly;NoSummary'] }],
   }, options);
   if (prepared.state !== 'verified') return prepared;
-  const metadata = JSON.parse(prepared.results[0]!.stdout) as { Properties: { TargetPath: string; BaseIntermediateOutputPath: string }; Items: { ProjectReference: unknown[]; Compile: { FullPath: string }[] } };
+  const metadataSchema = z.object({
+    Properties: z.object({ TargetPath: text, BaseIntermediateOutputPath: text }),
+    Items: z.object({ ProjectReference: z.array(z.unknown()), Compile: z.array(z.object({ FullPath: text })) }),
+  });
+  let metadata: z.infer<typeof metadataSchema>;
+  try { metadata = metadataSchema.parse(JSON.parse(prepared.results[0]!.stdout)); }
+  catch (error) {
+    return { ...prepared, state: 'unresolved' as const, results: prepared.results.map(result => ({ ...result, stderr: `${result.stderr}\nNative SDK metadata could not be read: ${String(error)}` })) };
+  }
   if (metadata.Items.ProjectReference.length) throw Error('A precompiled checker must not reference mutable production projects; build those from the observer.');
   const knownSources = new Set(contractFiles(contract, loaded.file).checkerFiles.map(path => realpathSync(reference(loaded.root, path))));
   const generated = realpathSync(resolve(dirname(reference(loaded.root, contract.checks.entrypoint)), metadata.Properties.BaseIntermediateOutputPath.replaceAll('\\', '/')));
@@ -300,7 +308,11 @@ export async function verifyContract(root: string, file: string, options: Execut
         if (kind === 'qualification') return loaded.qualification;
         if (kind === 'bindings') return loaded.binding;
         return JSON.parse(readFileSync(reference(loaded.root, path), 'utf8'));
-      }, contract.checks.precompile ? commands => prepareStandaloneChecker(loaded, commands, options) : undefined);
+      }, contract.checks.precompile ? async commands => {
+        const preparation = await prepareStandaloneChecker(loaded, commands, options);
+        if (preparation.changedInputs.length) scope.interrupted = true;
+        return preparation;
+      } : undefined);
     } finally {
       if (scope.interrupted) for (const [path, original] of originals) {
         try {
@@ -324,7 +336,8 @@ export async function verifyContract(root: string, file: string, options: Execut
   }
   // The workflow fingerprints the contract and all derived inputs across the run.
   // Include loading in that window as well; a command cannot rewrite its promises.
-  if (initial !== hash(readFileSync(reference(loaded.root, file)))) result.state = 'unresolved';
+  try { if (initial !== hash(readFileSync(reference(loaded.root, file)))) result.state = 'unresolved'; }
+  catch { result.state = 'unresolved'; result.gaps.push(`Contract input became unavailable during verification: ${file}`); }
   if (loaded.contract.mapping && inspectContractMap(loaded).state !== 'current') {
     result.state = 'unresolved';
     result.gaps.push('Source map became stale during verification');

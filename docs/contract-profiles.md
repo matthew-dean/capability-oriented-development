@@ -5,7 +5,7 @@ All three profiles are implemented and have runnable examples. They use the same
 | What you are building | Profile | Native checker | Working example |
 |---|---|---|---|
 | JavaScript library | `javascript-library` | Node script | [Two screens and a shared button](../examples/native-stack/README.md) |
-| C# library | `csharp-library` | .NET checker project, rebuilt on each invocation | [Pricing and Checkout](../examples/csharp-library/README.md) |
+| C# library | `csharp-library` | .NET checker project; standalone orchestration may be prepared once per verification | [Pricing and Checkout](../examples/csharp-library/README.md) |
 | Vue design system | `vue-design-system` | Node script using the project's real Vue/browser setup | [Button and Settings SFCs](../examples/vue-design-system/README.md) |
 
 The contract always names the shared job, owner, callers, allowed changes, expected results and checker. The native checker always accepts `behavior`, `ownership` and `changes`. The profile selects the invocation; it does not invent the product's expected values.

@@ -71,11 +71,18 @@ export async function verifyRuntimeContract(rootPath: string, input: unknown, op
       results.push({ id: obligation.id, kind: obligation.kind, claim: obligation.claim, elapsedMs: 0, exitCode: null, timedOut: true, stdout: '', stderr: 'Verification interrupted or its execution budget was exhausted; this command was not started.', evidenceId: '', execution: 'not-started' as const });
       continue;
     }
-    const current = fingerprints(root, contract.inputs);
-    const identities = contract.inputs.map(file => {
-      const path = within(root, file), stat = statSync(path);
-      return [file, path, stat.dev, stat.ino, stat.nlink];
-    }).sort();
+    let current: Record<string, string>, identities: (string | number)[][];
+    try {
+      current = fingerprints(root, contract.inputs);
+      identities = contract.inputs.map(file => {
+        const path = within(root, file), stat = statSync(path);
+        return [file, path, stat.dev, stat.ino, stat.nlink];
+      }).sort();
+    } catch {
+      interrupted = true; if (scope) scope.interrupted = true;
+      results.push({ id: obligation.id, kind: obligation.kind, claim: obligation.claim, elapsedMs: 0, exitCode: null, timedOut: false, stdout: '', stderr: 'A registered input could not be read; this command was not started.', evidenceId: '', execution: 'not-started' as const });
+      continue;
+    }
     const evidenceId = createHash('sha256').update(JSON.stringify([
       root, directories[index], obligation.command, obligation.args,
       Object.entries(current).sort(), identities, Object.entries(process.env).sort(),
@@ -107,7 +114,11 @@ export async function verifyRuntimeContract(rootPath: string, input: unknown, op
     });
     results.push({ id: obligation.id, kind: obligation.kind, claim: obligation.claim, elapsedMs: Date.now() - started, ...result, evidenceId, execution: 'executed' as const });
     if (result.timedOut) { interrupted = true; if (scope) scope.interrupted = true; }
-    if (scope?.repeatable && !result.timedOut && result.exitCode !== null && contract.inputs.every(file => current[file] === fingerprints(root, [file])[file])) scope.evidence.set(evidenceId, { ...result, evidenceId });
+    if (scope?.repeatable && !result.timedOut && result.exitCode !== null) {
+      try {
+        if (contract.inputs.every(file => current[file] === fingerprints(root, [file])[file])) scope.evidence.set(evidenceId, { ...result, evidenceId });
+      } catch { interrupted = true; scope.interrupted = true; }
+    }
   }
   const after: Record<string, string | null> = {};
   for (const file of contract.inputs) { try { after[file] = fingerprints(root, [file])[file]!; } catch { after[file] = null; } }

@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
-import { verifyRuntimeContract } from '../src/runtime-contracts.js';
+import { verifyRuntimeContract, withExecutionScope } from '../src/runtime-contracts.js';
 const roots: string[] = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 function setup(code = '') {
@@ -57,6 +57,16 @@ it('retains deleted registered evidence as unresolved', async () => {
   const { root, contract } = setup('import {unlinkSync} from "node:fs"; unlinkSync("check.mjs")');
   const result = await verifyRuntimeContract(root, contract, { allowExecution: true });
   expect(result.state).toBe('unresolved'); expect(result.changedInputs).toEqual(['check.mjs']);
+});
+it.each([false, true])('retains missing evidence before the next obligation when repeatable is %s', async repeatable => {
+  const { root, contract } = setup('import {unlinkSync} from "node:fs"; unlinkSync("check.mjs")');
+  contract.obligations.push({ ...contract.obligations[0]!, id: 'must-not-start', args: ['--eval', 'console.log("unexpected execution")'] });
+  const result = await withExecutionScope({ repeatable }, () => verifyRuntimeContract(root, contract, { allowExecution: true }));
+  expect(result.state).toBe('unresolved');
+  expect(result.changedInputs).toEqual(['check.mjs']);
+  expect(result.finalInputs['check.mjs']).toBeNull();
+  expect(result.results.map(item => item.execution)).toEqual(['executed', 'not-started']);
+  expect(result.verification).toMatchObject({ commandsExecuted: 1, commandsReused: 0 });
 });
 it('validates all working directories before starting a command', async () => {
   const { root, contract } = setup('import {writeFileSync} from "node:fs"; writeFileSync("check.mjs", "changed")');
