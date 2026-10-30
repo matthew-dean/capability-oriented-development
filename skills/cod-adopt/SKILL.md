@@ -75,3 +75,7 @@ Link existing growth guidance from the responsibility contract rather than dupli
 ## Check a new promise at the right phase
 
 For stateful requirements, establish the runtime phase independently of the expected contract value, settle native updates, then assert the value. A wait for that expected value can accept a contradictory contract while the application is still in its earlier state. Use the real request/query/operation lifecycle as the readiness signal. Qualify a contract-only disagreement for each newly added behavioral promise with fresh review identities, through the same checker used for delivery; an older field's mismatch test does not cover a new promise. Use focused native calibration where possible after confirming normal-delivery routing, rather than building another verification framework.
+
+## Bound verification cost
+
+Inspect the plan and measure added native builds, test processes and wall time before adopting or expanding enforcement. Choose a configurable project budget; do not infer a universal numeric quota. Follow bundled `docs/contracts.md#execution-cost-controls` and `docs/workflows.md#keep-verification-proportionate` for exact-source evidence reuse, standalone preparation and safe interruption recovery. Keep all consumer cases, real changed-owner propagation and ordinary delivery checks required. Over-budget proof stays unresolved; correct expensive orchestration instead of silently raising budgets or presenting a longer global CI timeout as completion.

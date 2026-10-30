@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { z } from 'zod';
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
@@ -48,6 +48,134 @@ finally {writeFileSync('owner.mjs',original);}
   return { root, contract, save, review };
 }
 const execute = (root: string) => verifyContract(root, 'capability.json', { allowExecution: true });
+
+it('executes repeatable current-source evidence once without reusing another variant', async () => {
+  const f = fixture();
+  const checker = join(f.root, 'check.mjs');
+  writeFileSync(checker, readFileSync(checker, 'utf8').replace(
+    "const mode=process.argv[2];",
+    `const mode=process.argv[2];
+const {appendFileSync}=await import('node:fs');
+appendFileSync('executions.jsonl', JSON.stringify({mode, consumer:readFileSync('consumer.mjs','utf8')})+'\\n');`,
+  ));
+  Object.assign(f.contract.checks, { repeatable: true }); f.save(); f.review();
+  const result = await execute(f.root);
+  expect(result.state).toBe('ready-for-review');
+  const calls = readFileSync(join(f.root, 'executions.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
+  expect(calls).toHaveLength(9); // Four distinct source variants, then change disagreement.
+  expect(new Set(calls.filter(call => call.mode === 'ownership').map(call => call.consumer)).size).toBe(4);
+  expect('contracts' in result && result.contracts[0]!.report.verification).toMatchObject({ commandsExecuted: 1, commandsReused: 3 });
+});
+
+it.skipIf(process.platform === 'win32')('prepares a standalone C# checker once and still executes every source variant', async () => {
+  const f = fixture(), previousPath = process.env.PATH;
+  writeFileSync(join(f.root, 'Harness.csproj'), '<Project />');
+  const dotnet = join(f.root, 'dotnet');
+  writeFileSync(dotnet, `#!${process.execPath}
+import {appendFileSync,mkdirSync,writeFileSync} from 'node:fs';
+appendFileSync('native-commands.jsonl',JSON.stringify(process.argv.slice(2))+'\\n');
+if(process.argv[2]==='msbuild') {
+ mkdirSync('obj',{recursive:true}); writeFileSync('Harness.dll','native SDK output');
+ console.log(JSON.stringify({Properties:{TargetPath:process.cwd()+'/Harness.dll',BaseIntermediateOutputPath:'obj\\\\'},Items:{ProjectReference:[],Compile:[]}}));
+} else { process.argv.splice(1,1); await import('./check.mjs'); }
+`);
+  const { chmodSync } = await import('node:fs'); chmodSync(dotnet, 0o755);
+  Object.assign(f.contract, { profile: 'csharp-library' });
+  Object.assign(f.contract.checks, { entrypoint: 'Harness.csproj', files: ['check.mjs'], repeatable: true, precompile: true });
+  f.save(); f.review();
+  process.env.PATH = `${f.root}:${previousPath}`;
+  try {
+    const result = await execute(f.root);
+    expect(result.state).toBe('ready-for-review');
+    const calls = readFileSync(join(f.root, 'native-commands.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    expect(calls.filter(call => call[0] === 'msbuild')).toHaveLength(1);
+    expect(calls.filter(call => call[0].endsWith('Harness.dll'))).toHaveLength(9);
+  } finally { if (previousPath === undefined) delete process.env.PATH; else process.env.PATH = previousPath; }
+});
+
+it.skipIf(process.platform === 'win32').each([
+  ['invalid JSON', 'console.log("native build message before JSON");', false],
+  ['invalid metadata', 'console.log("{}");', false],
+  ['truncated JSON', 'console.log(JSON.stringify({padding:"x".repeat(70000)}));', false],
+  ['successful build changed source', 'writeFileSync("owner.mjs","native build mutation");', true],
+  ['failed build changed source', 'writeFileSync("owner.mjs","native build mutation"); process.exitCode=1;', true],
+] as const)('reports unresolved preparation for %s', async (_name, script, changed) => {
+  const f = fixture(), previousPath = process.env.PATH, original = readFileSync(join(f.root, 'owner.mjs'));
+  writeFileSync(join(f.root, 'Harness.csproj'), '<Project />');
+  const dotnet = join(f.root, 'dotnet');
+  writeFileSync(dotnet, `#!${process.execPath}\nimport {writeFileSync} from 'node:fs';\n${script}`);
+  const { chmodSync } = await import('node:fs'); chmodSync(dotnet, 0o755);
+  Object.assign(f.contract, { profile: 'csharp-library' });
+  Object.assign(f.contract.checks, { entrypoint: 'Harness.csproj', files: ['check.mjs'], precompile: true });
+  f.save(); f.review(); process.env.PATH = `${f.root}:${previousPath}`;
+  try {
+    const result = await execute(f.root);
+    expect(result.state).toBe('unresolved');
+    expect(result.gaps).toContain('Native checker preparation failed; no calibration was accepted.');
+    expect('qualifications' in result && result.qualifications).toEqual([]);
+    expect('changedInputs' in result && result.changedInputs).toEqual(changed ? ['owner.mjs'] : []);
+    expect(readFileSync(join(f.root, 'owner.mjs'))).toEqual(original);
+    if (changed) expect('restoredInputs' in result && result.restoredInputs).toContain('owner.mjs');
+    else expect('preparation' in result && result.preparation?.results[0]?.stderr).toContain('Native SDK metadata');
+  } finally { if (previousPath === undefined) delete process.env.PATH; else process.env.PATH = previousPath; }
+});
+
+it('stops at its total budget, reports unresolved and restores an interrupted owner probe', async () => {
+  const f = fixture(), original = readFileSync(join(f.root, 'owner.mjs'));
+  writeFileSync(join(f.root, 'check.mjs'), `import {writeFileSync} from 'node:fs';
+writeFileSync('owner.mjs','interrupted probe'); console.log('owner-mutated'); setInterval(()=>{},100);`);
+  Object.assign(f.contract.checks, { repeatable: true, budgetMs: 1500 }); f.save(); f.review();
+  const result = await execute(f.root);
+  expect(result.state).toBe('unresolved');
+  expect(readFileSync(join(f.root, 'owner.mjs'))).toEqual(original);
+  expect('qualifications' in result && result.qualifications[0]!.report.cases[0]!.behavior.stdout).toContain('owner-mutated');
+  expect('qualifications' in result && result.qualifications[0]!.report.cases).toHaveLength(1);
+});
+
+it.each(['owner.mjs', 'capability.json'])('reports missing %s after a repeatable checker without throwing', async file => {
+  const f = fixture();
+  writeFileSync(join(f.root, 'check.mjs'), `import {unlinkSync} from 'node:fs'; unlinkSync(${JSON.stringify(file)});`);
+  Object.assign(f.contract.checks, { repeatable: true }); f.save(); f.review();
+  const result = await execute(f.root);
+  expect(result.state).toBe('unresolved');
+  expect(result.gaps.join(' ')).toContain('Cannot safely restore');
+  const report = 'qualifications' in result ? result.qualifications[0]!.report : undefined;
+  expect(report && 'changedInputs' in report && report.changedInputs).toContain(file);
+});
+
+it.skipIf(process.platform === 'win32').each(['symlinkSync', 'linkSync'])('does not restore an interrupted overlay through a replacement %s', async link => {
+  const f = fixture();
+  writeFileSync(join(f.root, 'innocent.mjs'), 'must remain untouched');
+  writeFileSync(join(f.root, 'check.mjs'), `import {readFileSync,unlinkSync,${link}} from 'node:fs';
+if(!readFileSync('consumer.mjs','utf8').includes('export {value as run}')) {
+ unlinkSync('consumer.mjs'); ${link}('innocent.mjs','consumer.mjs');
+ console.log('replacement-installed'); setInterval(()=>{},100);
+}`);
+  Object.assign(f.contract.checks, { budgetMs: 1500 }); f.save(); f.review();
+  const result = await execute(f.root);
+  expect(result.state).toBe('unresolved');
+  expect(readFileSync(join(f.root, 'innocent.mjs'), 'utf8')).toBe('must remain untouched');
+  expect(result.gaps.join(' ')).toContain('Cannot safely restore');
+});
+
+it.skipIf(process.platform === 'win32')('rejects production source disguised as a native generated intermediate', async () => {
+  const f = fixture(), previousPath = process.env.PATH;
+  mkdirSync(join(f.root, 'mutable'));
+  writeFileSync(join(f.root, 'mutable/Checkout.cs'), 'class Checkout {}');
+  writeFileSync(join(f.root, 'Harness.csproj'), '<Project />');
+  const dotnet = join(f.root, 'dotnet');
+  writeFileSync(dotnet, `#!${process.execPath}
+import {writeFileSync} from 'node:fs';
+writeFileSync('Harness.dll','native SDK output');
+console.log(JSON.stringify({Properties:{TargetPath:process.cwd()+'/Harness.dll',BaseIntermediateOutputPath:'mutable/'},Items:{ProjectReference:[],Compile:[{FullPath:process.cwd()+'/mutable/Checkout.cs'}]}}));`);
+  const { chmodSync } = await import('node:fs'); chmodSync(dotnet, 0o755);
+  Object.assign(f.contract, { profile: 'csharp-library' });
+  f.contract.consumers[0]!.entrypoint = 'mutable/Checkout.cs';
+  Object.assign(f.contract.checks, { entrypoint: 'Harness.csproj', files: ['check.mjs'], precompile: true });
+  f.save(); f.review(); process.env.PATH = `${f.root}:${previousPath}`;
+  try { await expect(execute(f.root)).rejects.toThrow('Standalone checker sources'); }
+  finally { if (previousPath === undefined) delete process.env.PATH; else process.env.PATH = previousPath; }
+});
 
 it('runs one contract through the strict engine without auxiliary definition files', async () => {
   const f = fixture();

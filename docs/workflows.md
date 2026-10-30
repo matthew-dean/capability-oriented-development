@@ -59,6 +59,10 @@ Put `cod verify` in the project's normal required verification command and CI. A
 
 Challenge that delivery path: a covered source edit without review must fail; a changed promise must fail against the unchanged implementation even after review is recorded; an implementation that breaks the promise must fail too. The included examples and toolkit regressions exercise these distinct obligations.
 
+## Keep verification proportionate
+
+Before adoption, inspect the planned checker invocations and measure COD overhead against the native baseline. Choose an adjustable project budget and wire it into delivery. Reuse current-source observations only for explicitly repeatable checks with identical bound inputs; every different source variant still needs execution. Keep standalone orchestration builds separate from mutable production graphs, and avoid duplicate baseline suites inside ownership checks. Over-budget or missing proof stays unresolved. Fix expensive orchestration instead of making a larger global CI timeout the permanent solution. See [execution controls](contracts.md#execution-cost-controls).
+
 ## Use the maintained source map
 
 When needed, put SCIP producer configuration and reviewed owner symbols in the contract's `mapping` section. Ignore `.cod/`. Complete preparation and review changes, run `cod refresh-map . capability.json --allow-execution`, then inspect and verify. Configured maps are required to be current before and after verification.

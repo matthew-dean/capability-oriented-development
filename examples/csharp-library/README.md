@@ -11,6 +11,8 @@ node dist/cli.js inspect examples/csharp-library capability.json
 node dist/cli.js verify examples/csharp-library capability.json --allow-execution
 ```
 
+The standalone checker is built once per verification; unchanged current-source observations can serve multiple claims. Each different source variant still executes, and changed consumer source still goes through the native SDK.
+
 The check first runs a real app that calls Checkout and prints its result. It then changes Pricing from a 10% discount to a 20% discount and rebuilds the app. The expected total changes from 90 to 80 for a subtotal of 100.
 
 The wrapper follows the new total. The copy and the caller that discards Pricing's answer still return 90. They must pass today's behavior and fail ownership. A compiler or process failure is an unresolved observation, not evidence that a copy was caught.

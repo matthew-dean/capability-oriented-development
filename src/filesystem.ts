@@ -1,10 +1,25 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, realpathSync, statSync } from 'node:fs';
+import { closeSync, constants, fstatSync, ftruncateSync, openSync, readFileSync, readdirSync, realpathSync, statSync, writeSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 export const sourcePattern = /\.(?:[cm]?ts|tsx)$/;
 const ignored = new Set(['.git', 'node_modules', 'dist', 'coverage', '.cod', '.threadlabs']);
 export const hash = (value: string | Buffer): string => createHash('sha256').update(value).digest('hex');
 export const portable = (value: string): string => value.split(sep).join('/');
+/** Temporary verification writes own one canonical regular file, never a replacement alias. */
+export function writeOwnedSource(canonical: string, bytes: Buffer): boolean {
+  let descriptor: number | undefined;
+  try {
+    descriptor = openSync(canonical, constants.O_RDWR | (constants.O_NOFOLLOW ?? 0));
+    const stat = fstatSync(descriptor);
+    if (!stat.isFile() || stat.nlink !== 1 || realpathSync(canonical) !== canonical) return false;
+    if (!readFileSync(descriptor).equals(bytes)) {
+      ftruncateSync(descriptor, 0);
+      let offset = 0;
+      while (offset < bytes.length) offset += writeSync(descriptor, bytes, offset, bytes.length - offset, offset);
+    }
+    return true;
+  } catch { return false; } finally { if (descriptor !== undefined) closeSync(descriptor); }
+}
 export function contained(root: string, file: string): boolean {
   const rel = relative(root, file);
   return rel === '' || (!isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${sep}`));

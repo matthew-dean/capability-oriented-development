@@ -5,7 +5,7 @@ All three profiles are implemented and have runnable examples. They use the same
 | What you are building | Profile | Native checker | Working example |
 |---|---|---|---|
 | JavaScript library | `javascript-library` | Node script | [Two screens and a shared button](../examples/native-stack/README.md) |
-| C# library | `csharp-library` | .NET checker project, rebuilt on each invocation | [Pricing and Checkout](../examples/csharp-library/README.md) |
+| C# library | `csharp-library` | .NET checker project; standalone orchestration may be prepared once per verification | [Pricing and Checkout](../examples/csharp-library/README.md) |
 | Vue design system | `vue-design-system` | Node script using the project's real Vue/browser setup | [Button and Settings SFCs](../examples/vue-design-system/README.md) |
 
 The contract always names the shared job, owner, callers, allowed changes, expected results and checker. The native checker always accepts `behavior`, `ownership` and `changes`. The profile selects the invocation; it does not invent the product's expected values.
@@ -14,7 +14,7 @@ The contract always names the shared job, owner, callers, allowed changes, expec
 
 Identify the public type/member, supporting implementation and real consuming entrypoints. Reuse the existing compiler and test infrastructure. The sample prices an order through `Shop.Checkout.Total`, which calls `Shop.Pricing.Total`.
 
-Its checker rebuilds and runs the actual consumer to observe the total. It changes the shared pricing formula and rebuilds again. A wrapper follows the new price; a copied formula or a discarded Pricing result does not. Compiler/process errors are unresolved, not a successful rejection.
+Its standalone checker is prepared once through the native SDK; it rebuilds and runs the actual consumer to observe the total. It changes the shared pricing formula and rebuilds again. A wrapper follows the new price; a copied formula or a discarded Pricing result does not. Compiler/process errors are unresolved, not a successful rejection.
 
 Source and binary compatibility remain the native library's concerns; add the project's existing API checks where required. See [.NET compatibility guidance](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/breaking-changes).
 
