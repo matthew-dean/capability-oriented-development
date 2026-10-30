@@ -32,6 +32,7 @@ export async function runWorkflow(
   input: unknown,
   options: { allowExecution: boolean; timeoutMs?: number },
   read: (file: string, kind: 'runtime' | 'qualification' | 'bindings' | 'review' | 'baseline') => unknown,
+  prepare?: (commands: { command: string; args: string[]; cwd: string }[]) => Promise<Awaited<ReturnType<typeof verifyRuntimeContract>>>,
 ) {
   if (options.allowExecution !== true) throw new Error('Workflow commands require explicit execution authorization');
   const workflow = workflowSchema.parse(input);
@@ -79,6 +80,11 @@ export async function runWorkflow(
   if (gaps.length) return { workflowVersion: 1 as const, id: workflow.id, state: 'unresolved', gaps, decision: workflow.decision, reconciliation, changeBindings, qualifications: [], contracts: [], definitionDigest: hash(JSON.stringify(workflow)), inputs: before, changedInputs: [] };
   for (const q of qualifications) preflightRuntimeContract(root, q.definition.qualificationVersion === 2 ? variantQualificationRuntimeContract(q.definition) : qualificationRuntimeContract(q.definition));
   for (const c of contracts) preflightRuntimeContract(root, c.definition);
+  const preparation = prepare ? await prepare([
+    ...contracts.flatMap(c => c.definition.obligations),
+    ...qualifications.flatMap(q => q.definition.qualificationVersion === 2 ? [q.definition.behavior, q.definition.conformance] : q.definition.cases.flatMap(c => [c.behavior, c.conformance])),
+  ]) : null;
+  if (preparation && preparation.state !== 'verified') return { workflowVersion: 1 as const, id: workflow.id, state: 'unresolved' as const, gaps: ['Native checker preparation failed; no calibration was accepted.'], decision: workflow.decision, reconciliation, changeBindings, preparation, qualifications: [], contracts: [], definitionDigest: hash(JSON.stringify(workflow)), inputs: before, changedInputs: [] };
   const qualified = [];
   for (const q of qualifications) qualified.push({ file: q.file, contracts: q.contracts, report: await (q.definition.qualificationVersion === 2 ? qualifyVariants(root, q.definition, options) : qualifyWitness(root, q.definition, options)) });
   const executed = [];
@@ -88,5 +94,5 @@ export async function runWorkflow(
   }
   const changedInputs = files.filter(file => { try { return hash(readFileSync(reference(root, file))) !== before[file]; } catch { return true; } });
   const state = changedInputs.length || qualified.some(q => q.report.state === 'unresolved') || executed.some(c => c.report.state === 'unresolved') ? 'unresolved' : qualified.some(q => q.report.state === 'unqualified') || executed.some(c => c.report.state === 'violated') ? 'violated' : 'ready-for-review';
-  return { workflowVersion: 1 as const, id: workflow.id, state, gaps, decision: workflow.decision, reconciliation, changeBindings, qualifications: qualified, contracts: executed, definitionDigest: hash(JSON.stringify(workflow)), inputs: before, changedInputs, review: { contractNecessity: 'required', solutionRestraint: 'required', fit: 'required', consumerCompleteness: 'required', currentRequirementsAndTests: 'required', qualificationCaseSemantics: 'required' }, authority: 'Ready means current registered commands, declared calibration and registered change bindings passed. Missing change bindings are legacy coverage, not complete COD enforcement. It does not approve contract necessity, solution restraint, fit, complete consumer coverage, reconciliation prose or semantic compatibility.' };
+  return { workflowVersion: 1 as const, id: workflow.id, state, gaps, decision: workflow.decision, reconciliation, changeBindings, preparation, qualifications: qualified, contracts: executed, definitionDigest: hash(JSON.stringify(workflow)), inputs: before, changedInputs, review: { contractNecessity: 'required', solutionRestraint: 'required', fit: 'required', consumerCompleteness: 'required', currentRequirementsAndTests: 'required', qualificationCaseSemantics: 'required' }, authority: 'Ready means current registered commands, declared calibration and registered change bindings passed. Missing change bindings are legacy coverage, not complete COD enforcement. It does not approve contract necessity, solution restraint, fit, complete consumer coverage, reconciliation prose or semantic compatibility.' };
 }

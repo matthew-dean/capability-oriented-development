@@ -1,12 +1,13 @@
-import { existsSync, lstatSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
-import { dirname, extname, join } from 'node:path';
+import { existsSync, lstatSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, extname, join, relative, resolve } from 'node:path';
 import { z } from 'zod';
-import { hash, reference } from './filesystem.js';
+import { contained, hash, portable, reference, writeOwnedSource } from './filesystem.js';
 import { inspectChangeBindings, verifyChangeBindings } from './change-bindings.js';
 import { inspectScipMap, refreshScipMap, scipMappingSchema } from './scip.js';
 import { runWorkflow } from './workflow.js';
 import { dependencySchema, dependencyVersion } from './dependencies.js';
 import { sourceReplacementsSchema, replacementSources, type VariantQualification } from './variant-qualification.js';
+import { verifyRuntimeContract, withExecutionScope } from './runtime-contracts.js';
 
 const text = z.string().trim().min(1);
 const paths = z.array(text).refine(items => new Set(items).size === items.length, 'Duplicate paths');
@@ -56,7 +57,7 @@ export const contractSchema = z.object({
   }).strict(),
   dependencies: z.array(dependencySchema).default([]),
   requirements: z.record(z.string(), z.unknown()).refine(value => Object.keys(value).length > 0, 'Describe the expected results'),
-  checks: z.object({ entrypoint: text, files: paths }).strict(),
+  checks: z.object({ entrypoint: text, files: paths, repeatable: z.boolean().default(false), precompile: z.boolean().default(false), budgetMs: z.number().int().positive().safe().optional() }).strict(),
   mapping: z.object({
     producers: scipMappingSchema.shape.producers,
     symbols: z.array(text).default([]),
@@ -69,7 +70,8 @@ export const contractSchema = z.object({
   if (contract.consumers.some(item => item.id === 'owner')) issue('The consumer ID "owner" is reserved');
   if (new Set(contract.consumers.map(item => item.entrypoint)).size !== contract.consumers.length) issue('Consumer entrypoints must be distinct');
   if (contract.consumers.some(item => item.entrypoint === contract.owner.entrypoint)) issue('Consumers must exercise a boundary outside the owner');
-  if (contract.profile === 'csharp-library' && extname(contract.checks.entrypoint) !== '.csproj') issue('The C# checker must be a .csproj; it is rebuilt on every invocation');
+  if (contract.profile === 'csharp-library' && extname(contract.checks.entrypoint) !== '.csproj') issue('The C# checker must be a .csproj; its build freshness is established through the native SDK');
+  if (contract.checks.precompile && contract.profile !== 'csharp-library') issue('Precompilation is supported only for standalone C# checkers');
   if (contract.profile !== 'csharp-library' && !/\.[cm]?js$/.test(contract.checks.entrypoint)) issue('The JavaScript/Vue checker must be a JavaScript entrypoint');
   if (contract.profile === 'vue-design-system' && contract.consumers.some(item => !item.alternatives.override)) issue('Vue consumers require a local-override counterexample');
   if (contract.mapping?.producers.some(producer => !producer.args.some(arg => arg.includes('{output}')))) issue('Each mapping producer needs a fresh {output} argument');
@@ -168,6 +170,15 @@ export function inspectContract(root: string, file: string) {
     }), requirements: contract.requirements,
     checks: ['behavior', 'ownership', 'changes'].map(mode => ({ mode, ...profileCommand(contract.profile, contract.checks.entrypoint, file, mode) })),
     counterexamples: loaded.qualification.cases.map(item => ({ name: item.id, expected: ['independent-copy', 'dead-owner-decoy', 'policy-override'].includes(item.role) ? 'reject ownership; preserve behavior' : 'accept', replacements: item.overlays })),
+    executionPlan: {
+      sourceVariants: loaded.qualification.cases.length,
+      maximumCheckerInvocations: loaded.qualification.cases.length * 2 + loaded.runtime.obligations.length + (contract.checks.precompile ? 1 : 0),
+      expectedCheckerInvocations: loaded.qualification.cases.length * 2 + (contract.checks.repeatable ? 1 : loaded.runtime.obligations.length) + (contract.checks.precompile ? 1 : 0),
+      repeatable: contract.checks.repeatable,
+      precompile: contract.checks.precompile,
+      budgetMs: contract.checks.budgetMs ?? null,
+      nativeSubprocesses: 'Owned by the native checker; measure builds, test processes and wall time separately.',
+    },
     review: { file: reviewFile, state: review?.state ?? 'missing', findings: review?.findings ?? [] },
     files: loaded.inputs,
     sourceMap: inspectContractMap(loaded),
@@ -227,11 +238,38 @@ export function recordContractReview(root: string, file: string, rationale: stri
   return { id: current.id, file: loaded.reviewFile, state: 'recorded', next: 'Run cod verify; recording review does not establish conformance.' };
 }
 
+
+type ExecutionOptions = { allowExecution: boolean; timeoutMs?: number; budgetMs?: number | undefined };
+
+async function prepareStandaloneChecker(loaded: ReturnType<typeof loadContract>, commands: { command: string; args: string[]; cwd: string }[], options: ExecutionOptions) {
+  const { contract } = loaded;
+  const prepared = await verifyRuntimeContract(loaded.root, {
+    runtimeContractVersion: 1, id: `${contract.id}.prepare`, responsibility: 'Build the standalone native checker once before source variants.', inputs: loaded.inputs,
+    obligations: [{ id: 'prepare', kind: 'behavior', claim: 'The native SDK rebuilt the checker and reported its actual output and source graph.', command: 'dotnet',
+      args: ['msbuild', contract.checks.entrypoint, '-restore', '-t:Build', '-getProperty:TargetPath,BaseIntermediateOutputPath', '-getItem:ProjectReference,Compile', '-v:quiet', '-consoleLoggerParameters:ErrorsOnly;NoSummary'] }],
+  }, options);
+  if (prepared.state !== 'verified') return prepared;
+  const metadata = JSON.parse(prepared.results[0]!.stdout) as { Properties: { TargetPath: string; BaseIntermediateOutputPath: string }; Items: { ProjectReference: unknown[]; Compile: { FullPath: string }[] } };
+  if (metadata.Items.ProjectReference.length) throw Error('A precompiled checker must not reference mutable production projects; build those from the observer.');
+  const knownSources = new Set(contractFiles(contract, loaded.file).checkerFiles.map(path => realpathSync(reference(loaded.root, path))));
+  const generated = realpathSync(resolve(dirname(reference(loaded.root, contract.checks.entrypoint)), metadata.Properties.BaseIntermediateOutputPath.replaceAll('\\', '/')));
+  if (!contained(loaded.root, generated) || generated === loaded.root) throw Error('Native intermediate output must stay in a generated directory inside the project root.');
+  const mutableSources = new Set([
+    contract.owner.entrypoint, ...contract.owner.files,
+    ...contract.consumers.flatMap(consumer => [consumer.entrypoint, ...consumer.files]),
+  ].map(path => realpathSync(reference(loaded.root, path))));
+  if (metadata.Items.Compile.some(item => mutableSources.has(realpathSync(item.FullPath)) || (!knownSources.has(realpathSync(item.FullPath)) && !contained(generated, realpathSync(item.FullPath))))) throw Error('Standalone checker sources must be registered witness inputs, outside the mutable production boundary.');
+  const assembly = reference(loaded.root, portable(relative(loaded.root, metadata.Properties.TargetPath)));
+  for (const command of commands) command.args = [assembly, ...command.args.slice(4)];
+  return prepared;
+}
+
 /** Compile the authored contract in memory and run the existing strict workflow.
  * No runtime/qualification/binding/workflow JSON files are generated or maintained.
  */
-export async function verifyContract(root: string, file: string, options: { allowExecution: boolean; timeoutMs?: number }) {
+export async function verifyContract(root: string, file: string, options: ExecutionOptions) {
   if (!options.allowExecution) throw Error('Contract checks require explicit execution authorization');
+  const started = Date.now();
   const loaded = loadContract(root, file);
   const { contract, reviewFile } = loaded;
   if (!existsSync(join(loaded.root, reviewFile))) {
@@ -248,12 +286,42 @@ export async function verifyContract(root: string, file: string, options: { allo
     requireChangeBindings: true, changeBindings: [{ definition: file, review: reviewFile }],
   };
   const initial = loaded.contractDigest;
-  const result = await runWorkflow(loaded.root, workflow, options, (path, kind) => {
-    if (kind === 'runtime') return loaded.runtime;
-    if (kind === 'qualification') return loaded.qualification;
-    if (kind === 'bindings') return loaded.binding;
-    return JSON.parse(readFileSync(reference(loaded.root, path), 'utf8'));
+  const originals = new Map([...loaded.inputs, reviewFile].map(path => {
+    const canonical = realpathSync(reference(loaded.root, path));
+    return [path, { canonical, links: statSync(canonical).nlink, bytes: readFileSync(canonical) }];
+  }));
+  const restoredInputs: string[] = [];
+  const unsafeInputs: string[] = [];
+  const limit = Math.min(options.budgetMs ?? Infinity, contract.checks.budgetMs ?? Infinity);
+  const result = await withExecutionScope({ repeatable: contract.checks.repeatable, budgetMs: Number.isFinite(limit) ? limit : undefined }, async scope => {
+    try {
+      return await runWorkflow(loaded.root, workflow, options, (path, kind) => {
+        if (kind === 'runtime') return loaded.runtime;
+        if (kind === 'qualification') return loaded.qualification;
+        if (kind === 'bindings') return loaded.binding;
+        return JSON.parse(readFileSync(reference(loaded.root, path), 'utf8'));
+      }, contract.checks.precompile ? commands => prepareStandaloneChecker(loaded, commands, options) : undefined);
+    } finally {
+      if (scope.interrupted) for (const [path, original] of originals) {
+        try {
+          const current = reference(loaded.root, path);
+          if (realpathSync(current) !== original.canonical) { unsafeInputs.push(path); continue; }
+          const changed = !readFileSync(current).equals(original.bytes);
+          if (changed) {
+            if (!writeOwnedSource(original.canonical, original.bytes)) unsafeInputs.push(path);
+            else restoredInputs.push(path);
+          }
+        } catch { unsafeInputs.push(path); }
+      }
+    }
   });
+  for (const [path, original] of originals) {
+    try { if (realpathSync(reference(loaded.root, path)) !== original.canonical || statSync(original.canonical).nlink !== original.links) unsafeInputs.push(path); }
+    catch { unsafeInputs.push(path); }
+  }
+  if (unsafeInputs.length) {
+    result.state = 'unresolved'; result.gaps.push(`Cannot safely restore interrupted inputs: ${[...new Set(unsafeInputs)].join(', ')}`);
+  }
   // The workflow fingerprints the contract and all derived inputs across the run.
   // Include loading in that window as well; a command cannot rewrite its promises.
   if (initial !== hash(readFileSync(reference(loaded.root, file)))) result.state = 'unresolved';
@@ -261,5 +329,14 @@ export async function verifyContract(root: string, file: string, options: { allo
     result.state = 'unresolved';
     result.gaps.push('Source map became stale during verification');
   }
-  return result;
+  const receipts = [
+    ...result.qualifications.flatMap(item => item.report.cases.flatMap(entry => [entry.behavior, entry.conformance])),
+    ...result.contracts.flatMap(item => item.report.results),
+    ...('preparation' in result && result.preparation ? result.preparation.results : []),
+  ];
+  return { ...result, restoredInputs, cost: {
+    elapsedMs: Date.now() - started, budgetMs: Number.isFinite(limit) ? limit : null,
+    checkerInvocations: receipts.filter(receipt => receipt.execution === 'executed').length,
+    reusedResults: receipts.filter(receipt => receipt.execution === 'reused').length,
+  } };
 }

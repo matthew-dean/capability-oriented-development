@@ -23,8 +23,18 @@ import { qualifyVariants } from './variant-qualification.js';
 import { inspectChangeBindings, verifyChangeBindings } from './change-bindings.js';
 
 export async function runCli(args: string[]): Promise<number> {
-  const [command, root = '.', ...rest] = args;
+  const [command, root = '.', ...supplied] = args;
   try {
+    const rest = [...supplied];
+    let budgetMs: number | undefined;
+    if (command === 'verify' || command === 'verify-catalog') {
+      const index = rest.indexOf('--budget-ms');
+      if (index !== -1) {
+        const value = rest[index + 1];
+        if (!value || !/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value)) || rest.lastIndexOf('--budget-ms') !== index) throw Error('--budget-ms requires one positive safe integer');
+        budgetMs = Number(value); rest.splice(index, 2);
+      }
+    }
     if (command === 'sync' || command === 'connections') {
       const flags = rest.filter(value => value.startsWith('--'));
       const values = rest.filter(value => !value.startsWith('--'));
@@ -48,7 +58,7 @@ export async function runCli(args: string[]): Promise<number> {
       const allowed = command === 'catalog' ? ['--json', '--check-reviews'] : ['--json', '--allow-execution'];
       if (values.length > 1 || new Set(flags).size !== flags.length || flags.some(flag => !allowed.includes(flag))
         || (command === 'verify-catalog' && !flags.includes('--allow-execution'))) {
-        throw Error('Usage: cod catalog <root> [directory] [--check-reviews] [--json] | verify-catalog <root> [directory] --allow-execution [--json]');
+        throw Error('Usage: cod catalog <root> [directory] [--check-reviews] [--json] | verify-catalog <root> [directory] --allow-execution [--budget-ms <milliseconds>] [--json]');
       }
       const directory = values[0] ?? 'capabilities';
       if (command === 'catalog') {
@@ -63,18 +73,23 @@ export async function runCli(args: string[]): Promise<number> {
             console.log(`  Extend: ${capability.rules.extend}`);
             for (const dependency of capability.dependencies) console.log(`  External: ${dependency.id} → ${dependency.repository} → ${dependency.contract}@${dependency.resolvedVersion ?? "unresolved"} (declared)`);
             console.log(`  Review: ${capability.review.state}; source map: ${capability.sourceMap.state}`);
+            console.log(`  Planned checker invocations: ${capability.executionPlan.expectedCheckerInvocations}; standalone precompile: ${capability.executionPlan.precompile}; budget: ${capability.executionPlan.budgetMs ?? "unset"}`);
           }
           for (const gap of report.gaps) console.log(`  ${gap}`);
           console.log('Read-only catalog; conformance not evaluated. Use --json for the complete file map and native check commands.');
         }
         return flags.includes('--check-reviews') && report.capabilities.some(capability => capability.review.state !== 'current') ? 2 : 0;
       }
-      const report = await verifyCatalog(root, directory, { allowExecution: true });
+      const started = Date.now();
+      const report = await verifyCatalog(root, directory, { allowExecution: true, budgetMs });
       if (flags.includes('--json')) console.log(JSON.stringify(report, null, 2));
       else {
         console.log(`Catalog: ${report.state}`);
         for (const result of report.results) console.log(`  ${result.contract}: ${result.report.state}`);
         for (const gap of report.gaps) console.log(`  ${gap}`);
+        if ("notRun" in report && report.notRun.length) console.log(`Not run after failure: ${report.notRun.join(", ")}`);
+        console.log(`Verification elapsed: ${Date.now() - started}ms${budgetMs === undefined ? '' : `; budget ${budgetMs}ms`}`);
+        if ("cost" in report) console.log(`Checker invocations: ${report.cost.checkerInvocations}; reused: ${report.cost.reusedResults}`);
       }
       return report.state === 'ready-for-review' ? 0 : report.state === 'unresolved' ? 2 : 1;
     }
@@ -90,7 +105,7 @@ export async function runCli(args: string[]): Promise<number> {
       const file = values[0] ?? 'capability.json';
       if (command === 'inspect' && values.length > 1) throw Error('Usage: cod inspect <root> [capability.json] [--json]');
       if (command === 'review' && (values.length !== 3 || values[1] !== '--reason')) throw Error('Usage: cod review <root> <capability.json> --reason "What changed and what was reviewed"');
-      if (command === 'verify' && (values.length !== 2 || values[1] !== '--allow-execution')) throw Error('Usage: cod verify <root> <capability.json> --allow-execution [--json]');
+      if (command === 'verify' && (values.length !== 2 || values[1] !== '--allow-execution')) throw Error('Usage: cod verify <root> <capability.json> --allow-execution [--budget-ms <milliseconds>] [--json]');
       if (command === 'inspect') {
         const report = inspectContract(root, file);
         if (json) process.stdout.write(JSON.stringify(report, null, 2) + '\n');
@@ -114,10 +129,11 @@ export async function runCli(args: string[]): Promise<number> {
         console.log(json ? JSON.stringify(report, null, 2) : `${report.file}: ${report.next}`);
         return 0;
       }
-      const report = await verifyContract(root, file, { allowExecution: true });
+      const report = await verifyContract(root, file, { allowExecution: true, budgetMs });
       if (json) console.log(JSON.stringify(report, null, 2));
       else {
         console.log(`${report.id}: ${report.state}`);
+        if ("cost" in report) console.log(`Checker invocations: ${report.cost.checkerInvocations}; reused: ${report.cost.reusedResults}; elapsed: ${report.cost.elapsedMs}ms`);
         for (const gap of report.gaps) console.log(`  ${gap}`);
         if ('qualifications' in report) for (const qualification of report.qualifications) {
           for (const item of qualification.report.cases) {
@@ -178,7 +194,7 @@ export async function runCli(args: string[]): Promise<number> {
       return result.state === 'verified' ? 0 : result.state === 'violated' ? 1 : 2;
     }
     if (command === 'snapshot') { if(rest.length !== 1)throw new Error('Snapshot requires exactly one new relative path'); process.stdout.write(JSON.stringify(captureSnapshot(root,rest[0]!),null,2)+'\n');return 0; }
-    if (!['check', 'index', 'discover', 'plan', 'reconcile'].includes(command ?? '')) throw new Error('Usage: cod catalog <root> [directory] [--check-reviews] [--json] | verify-catalog <root> [directory] --allow-execution [--json] | inspect <root> [capability.json] | review <root> <capability.json> --reason <explanation> | verify <root> <capability.json> --allow-execution | refresh-map <root> <capability.json> --allow-execution | Advanced: check|index <root> | discover <root> <intent> | reconcile <root> <baseline.json> | plan <root> <intent> | snapshot <root> <new-relative-path> | enforce <root> <contract.json> | verify-contract <root> <contract.json> --allow-execution | qualify-witness <root> <definition.json> --allow-execution | workflow <root> <definition.json> --allow-execution | verify-propagation <root> <definition.json> --allow-execution | qualify-variants <root> <definition.json> --allow-execution | binding-state <root> <definition.json> | verify-bindings <root> <definition.json> <review.json> | serve <root>');
+    if (!['check', 'index', 'discover', 'plan', 'reconcile'].includes(command ?? '')) throw new Error('Usage: cod catalog <root> [directory] [--check-reviews] [--json] | verify-catalog <root> [directory] --allow-execution [--budget-ms <milliseconds>] [--json] | inspect <root> [capability.json] | review <root> <capability.json> --reason <explanation> | verify <root> <capability.json> --allow-execution | refresh-map <root> <capability.json> --allow-execution | Advanced: check|index <root> | discover <root> <intent> | reconcile <root> <baseline.json> | plan <root> <intent> | snapshot <root> <new-relative-path> | enforce <root> <contract.json> | verify-contract <root> <contract.json> --allow-execution | qualify-witness <root> <definition.json> --allow-execution | workflow <root> <definition.json> --allow-execution | verify-propagation <root> <definition.json> --allow-execution | qualify-variants <root> <definition.json> --allow-execution | binding-state <root> <definition.json> | verify-bindings <root> <definition.json> <review.json> | serve <root>');
     if (['discover','plan'].includes(command ?? '') && !rest.join(' ').trim()) throw new Error('Discovery requires an intent');
     if (command === 'reconcile' && rest.length !== 1) throw new Error('Reconciliation requires exactly one baseline path');
     const index = buildIndex(root);

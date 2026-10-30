@@ -95,12 +95,12 @@ The profile chooses these invocations automatically:
 | JavaScript / Vue | `node <checks.entrypoint> <mode> <contract-path>` |
 | C# | `dotnet run --project <checks.entrypoint> -- <mode> <contract-path>` |
 
-The JavaScript/Vue entrypoint is a `.js`, `.mjs` or `.cjs` file. The C# entrypoint is a `.csproj`; normal builds remain enabled. The working directory is the supplied root. No shell is used.
+The JavaScript/Vue entrypoint is a `.js`, `.mjs` or `.cjs` file. The C# entrypoint is a `.csproj`; native SDK freshness checks remain required. The working directory is the supplied root. No shell is used.
 
 | Mode | Native checker must do |
 |---|---|
 | `behavior` | Read requirements, exercise actual consumers and compare observable results |
-| `ownership` | Establish current behavior, change a real owner rule temporarily, exercise the same consumers, assert propagation, and restore exact sources |
+| `ownership` | Establish actual owner dependence and controlled changed-owner propagation through the consumers; restore any temporary source changes |
 | `changes` | Deliberately change only the contract, then only the implementation; prove the behavior assertions reject both disagreements and restore inputs |
 
 Return `0` for success, `1` for an assertion rejecting the implementation, and `2` for unavailable/unsupported observations or infrastructure errors. A missing executable, timeout, changed inputs or checker crash cannot count as a successfully rejected copy.
@@ -110,6 +110,22 @@ For compiled or served applications, the ownership check must establish that cha
 Keep check orchestration in the repository’s test/tooling area, with behavioral assertions in the existing native consumer suite. Wire it into the appropriate delivery lane. Run the normal coverage gates as well as contract verification; do not lower production thresholds or add production-source exclusions to accommodate a check runner. Measure the combined CI runtime against an ordinary successful run; give the additional checks an explicit lane or a measured execution budget while retaining the existing suite.
 
 Keep `checks.files` complete: include checker helpers, build/project files, browser setup, dependency rules and the normal delivery configuration. The toolkit adds the contract, owners, consumers and alternative sources to the input inventory automatically. This avoids repeating the same inventory across several formats.
+
+## Execution cost controls
+
+Inspect the derived `executionPlan` before wiring verification into CI. It lists source variants, expected and maximum checker invocations, preparation and the configured budget. A checker may launch additional native build/test processes: measure those separately instead of treating one wrapper invocation as one test.
+
+The optional `checks` fields are:
+
+- `repeatable: true`: permit invocation-local reuse of an executed result only for the same command, working directory, environment and registered input bytes. Reused results name their evidence identity and are counted separately. Every different production variant still executes. The default is `false`; external mutable state or incomplete input inventories make this option inappropriate.
+- `precompile: true`: build a standalone C# orchestration project once through the native SDK, then execute the SDK-reported assembly for each mode. Evaluated project references to production projects are rejected, and compiled sources must be registered checker inputs or generated intermediates. The observer still rebuilds and controls actual changed consumers. Other profiles and ordinary C# checkers keep their existing invocation.
+- `budgetMs`: a positive total execution budget for this capability, including preparation. `verify` and `verify-catalog` also accept `--budget-ms <milliseconds>`; a catalog budget is shared across contracts and the stricter enclosing limit applies.
+
+Budget exhaustion returns unresolved, stops further commands and prevents a passing result. Receipts distinguish executed, reused and not-started commands. Interrupted source probes are rolled back within the registered input inventory when the same regular files remain safely reachable; changed path identities require recovery rather than overwriting another file. Verification owns that inventory exclusively: do not run another writer or verifier concurrently.
+
+Use separate behavior and ownership assertions without rerunning the entire behavior suite inside every mode. A compiled native boundary can reject an impossible copy before a more expensive owner substitution, but it does not excuse missing consumer propagation or valid-composition cases. For contract-data-only disagreement, a verified current assembly may be run without rebuilding; implementation changes still require native compiler freshness and an independent actuator observation. Build/test the normal baseline after source probes before treating compiled output as a delivery artifact.
+
+Reports expose elapsed time, checker invocations and reused results. They are measurements of this run, not a speedup claim or a universal coverage certificate. Keep ordinary behavior, integration, coverage and review gates required.
 
 ## Discover the repository's capability and file map
 

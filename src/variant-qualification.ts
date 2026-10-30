@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync, realpathSync, statSync } from 'node:fs';
+import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { z } from 'zod';
-import { hash, reference } from './filesystem.js';
+import { hash, reference, writeOwnedSource } from './filesystem.js';
 import { preflightRuntimeContract, verifyRuntimeContract } from './runtime-contracts.js';
 
 export const sourceReplacementsSchema = z.object({
@@ -62,6 +62,7 @@ export async function qualifyVariants(root: string, input: unknown, options: { a
   }
   const targets = [...new Set(cases.flatMap(c => c.overlays.map(o => o.targetPath)))];
   const originals = new Map(targets.map(file => [file, readFileSync(file)]));
+  for (const target of targets) if (statSync(target).nlink !== 1) throw Error('Source overlay targets must be regular files with one link');
   // Resolve every transformation before the first command or source write.
   const prepared = cases.map(c => ({ ...c, overlays: c.overlays.map(overlay => {
     let bytes = overlay.sourcePath === undefined ? originals.get(overlay.targetPath)! : readFileSync(overlay.sourcePath);
@@ -81,10 +82,10 @@ export async function qualifyVariants(root: string, input: unknown, options: { a
   for (const c of prepared) {
     let execution;
     try {
-      for (const overlay of c.overlays) writeFileSync(overlay.targetPath, overlay.bytes);
+      for (const overlay of c.overlays) if (!writeOwnedSource(overlay.targetPath, overlay.bytes)) throw Error(`Source overlay target changed identity: ${overlay.target}`);
       execution = await verifyRuntimeContract(root, runtime, options);
       for (const file of execution.changedInputs) changedInputs.add(file);
-    } finally { for (const {targetPath} of c.overlays) writeFileSync(targetPath, originals.get(targetPath)!); }
+    } finally { for (const {target, targetPath} of c.overlays) if (!writeOwnedSource(targetPath, originals.get(targetPath)!)) changedInputs.add(target); }
     for (const file of definition.inputs) {
       try { if (initial.before[file] !== hash(readFileSync(reference(root, file)))) changedInputs.add(file); } catch { changedInputs.add(file); }
     }

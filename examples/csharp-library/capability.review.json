@@ -2,10 +2,10 @@
   "reviewVersion": 2,
   "id": "pricing",
   "definitionDigest": "43dfdec618db7d31da133affb27cb3041bba7c67ffaf74ca76491273312a4b01",
-  "contractDigest": "ea29297b297f5c7d46f2289b68665a14a9f241ee5f86469e59b05cc00e860709",
+  "contractDigest": "ae889f90d811ceb9ffeb3328060c8727c571bba0cf893ab202625553bf50db28",
   "implementations": {
     "owner": "c49dfe7d256fb5eaf89a697d28ec777f55cc0e9f62456e8fdc28ffade976f805",
     "checkout": "10d40a30ea49b57322226c031715c80ee3573ccd158414c5e89f63ebb6734faa"
   },
-  "rationale": "Reviewed the need and existing owner, responsibility boundaries, real consumer observations, correct-looking bypass cases, and checks for disagreement in both change directions. Reuse avoids a second owner for the same rule; native tests still must pass."
+  "rationale": "Reviewed standalone native orchestration, one evidence receipt per repeatable source state, retained source-changing observations and bounded execution."
 }

@@ -14,7 +14,7 @@ The contract always names the shared job, owner, callers, allowed changes, expec
 
 Identify the public type/member, supporting implementation and real consuming entrypoints. Reuse the existing compiler and test infrastructure. The sample prices an order through `Shop.Checkout.Total`, which calls `Shop.Pricing.Total`.
 
-Its checker rebuilds and runs the actual consumer to observe the total. It changes the shared pricing formula and rebuilds again. A wrapper follows the new price; a copied formula or a discarded Pricing result does not. Compiler/process errors are unresolved, not a successful rejection.
+Its standalone checker is prepared once through the native SDK; it rebuilds and runs the actual consumer to observe the total. It changes the shared pricing formula and rebuilds again. A wrapper follows the new price; a copied formula or a discarded Pricing result does not. Compiler/process errors are unresolved, not a successful rejection.
 
 Source and binary compatibility remain the native library's concerns; add the project's existing API checks where required. See [.NET compatibility guidance](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/breaking-changes).
 

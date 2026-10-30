@@ -18,7 +18,6 @@ try
     }
     else if (mode == "ownership")
     {
-        CheckBehavior();
         ChangeOwner();
         // Rebuild the real app. An old loaded assembly is not a valid probe.
         Require(Observe() == Subtotal() * 0.8m, "Checkout did not follow the changed pricing owner.");

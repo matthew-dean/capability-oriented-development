@@ -50,7 +50,9 @@
     "entrypoint": "checks/Checks.csproj",
     "files": [
       "checks/Program.cs"
-    ]
+    ],
+    "repeatable": true,
+    "precompile": true
   },
   "decision": {
     "action": "reuse",

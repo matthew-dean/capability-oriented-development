@@ -77,7 +77,7 @@ Request `/cod:cod-adopt` or `/cod:cod-workflow`. This is a local plugin installa
 | Example | Native execution |
 |---|---|
 | [JavaScript: shared button and two screens](examples/native-stack/README.md) | Node and real Chromium observations |
-| [C#: pricing and checkout](examples/csharp-library/README.md) | .NET projects rebuilt and executed for each check |
+| [C#: pricing and checkout](examples/csharp-library/README.md) | Standalone orchestration prepared once; actual changed consumers rebuilt and observed |
 | [Vue: Button and Settings components](examples/vue-design-system/README.md) | Vue compilation and real Chromium observations |
 
 All three use the same schema and verification engine. [Compare profiles](docs/contract-profiles.md).

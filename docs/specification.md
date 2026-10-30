@@ -156,6 +156,16 @@ Native test runners, type/build checks and CI can enforce these obligations. To 
 
 When a compiled or running application may retain stale provider code, require an independent observation that the selected provider change reached execution. The toolkit's optional propagation `controlPath` binds that observation to a changing value in the same JSON result; a missing or unchanged control leaves evidence unresolved. A control that follows the provider cannot substitute for actual consumer observations. Qualify a consumer copy while retaining the control: the control must change and conformance must still reject the copied consumer.
 
+### Bound verification cost
+
+COD must reuse existing native verification and add proportionate, measured work. Inspect the execution plan and measure the added build/test processes and wall time before adopting a gate. Agree on an adjustable project budget; there is no universal duration quota. A timeout increase does not establish an acceptable adoption cost.
+
+One current-source observation may support several claims when the command, working directory, environment and registered input bytes are identical and the checker is explicitly repeatable. Reuse must be confined to that verification invocation, attributed in its receipt, and invalidated for every different source variant. Repeated labels are not independent evidence. Do not cache qualification across runs or replace actual consumer observations with fingerprints.
+
+Prefer native type and construction constraints where they enforce the owned boundary, and qualify them against behavior-correct copies and discarded-owner results. Keep actual changed-owner propagation through receiving consumers and delivery adapters. Compile the smallest necessary source graph; separate standalone check orchestration from mutable consumers. Rebuild changed sources, but do not rebuild an unchanged graph for each assertion or contract-data-only disagreement.
+
+An exhausted execution budget is unresolved evidence. Stop further work, retain failed or unexecuted observations, and restore safely reachable registered files changed by an interrupted probe. Do not omit consumers, relax assertions or silently raise the budget to obtain a passing result. See [execution controls](contracts.md#execution-cost-controls).
+
 ## 7. Tools provided in this repository
 
 | Tool | Implemented purpose | Boundary |

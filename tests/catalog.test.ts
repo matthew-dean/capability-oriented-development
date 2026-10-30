@@ -59,6 +59,17 @@ async function cli(args: string[]) {
   return { exit, text, errors };
 }
 
+it('accepts an explicit catalog budget and rejects invalid or duplicate budgets', async () => {
+  const f = fixture(); f.review();
+  const result = await cli(['verify-catalog', f.root, '--allow-execution', '--budget-ms', '5000', '--json']);
+  expect(result.exit).toBe(0);
+  for (const budget of ['0', '-1', '1.5', '9007199254740992']) {
+    const invalid = await cli(['verify', f.root, f.path, '--allow-execution', '--budget-ms', budget]);
+    expect(invalid.exit).toBe(2); expect(invalid.errors).toContain('positive safe integer');
+  }
+  expect((await cli(['verify-catalog', f.root, '--allow-execution', '--budget-ms', '100', '--budget-ms', '100'])).exit).toBe(2);
+});
+
 it('derives a navigable catalog from standard contracts and reports stale review without executing checks', async () => {
   const f = fixture();
   const missing = await cli(['catalog', f.root, '--check-reviews', '--json']);

@@ -2,6 +2,7 @@ import { lstatSync, readdirSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { contained, portable } from './filesystem.js';
 import { inspectContract, verifyContract } from './contracts.js';
+import { withExecutionScope } from './runtime-contracts.js';
 
 /** Derive discovery from the contracts themselves, never a parallel registry. */
 export function inspectCatalog(rootPath: string, directory = 'capabilities') {
@@ -40,13 +41,21 @@ export function inspectCatalog(rootPath: string, directory = 'capabilities') {
 }
 
 /** One serial verification path for every discovered contract and native profile. */
-export async function verifyCatalog(root: string, directory = 'capabilities', options: { allowExecution: boolean; timeoutMs?: number }) {
+export async function verifyCatalog(root: string, directory = 'capabilities', options: { allowExecution: boolean; timeoutMs?: number; budgetMs?: number | undefined }) {
   if (!options.allowExecution) throw Error('Catalog checks require explicit execution authorization');
+  const started = Date.now();
   const catalog = inspectCatalog(root, directory);
   if (catalog.gaps.length) return { catalogVersion: 1 as const, state: 'unresolved' as const, gaps: catalog.gaps, results: [] };
-  const results = [];
-  for (const capability of catalog.capabilities) results.push({ contract: capability.contract, report: await verifyContract(root, capability.contract, options) });
+  const results = await withExecutionScope({ budgetMs: options.budgetMs }, async () => {
+    const executed = [];
+    for (const capability of catalog.capabilities) {
+      const report = await verifyContract(root, capability.contract, options);
+      executed.push({ contract: capability.contract, report });
+      if (report.state !== 'ready-for-review') break;
+    }
+    return executed;
+  });
   const state: 'unresolved' | 'ready-for-review' | 'violated' = results.some(item => item.report.state === 'unresolved') ? 'unresolved'
     : results.every(item => item.report.state === 'ready-for-review') ? 'ready-for-review' : 'violated';
-  return { catalogVersion: 1 as const, state, gaps: results.flatMap(item => item.report.gaps), results };
+  return { catalogVersion: 1 as const, state, gaps: results.flatMap(item => item.report.gaps), results, notRun: catalog.capabilities.slice(results.length).map(item => item.contract), cost: { elapsedMs: Date.now() - started, budgetMs: options.budgetMs ?? null, checkerInvocations: results.reduce((total, item) => total + ("cost" in item.report ? item.report.cost.checkerInvocations : 0), 0), reusedResults: results.reduce((total, item) => total + ("cost" in item.report ? item.report.cost.reusedResults : 0), 0) } };
 }
